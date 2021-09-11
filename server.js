@@ -60,6 +60,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importStar(require("express"));
 var Product_1 = __importDefault(require("./src/model/Product"));
+var express_handlebars_1 = __importDefault(require("express-handlebars"));
 var _product = new Product_1.default();
 var app = (0, express_1.default)();
 var PORT = process.env.PORT || 8080;
@@ -68,10 +69,24 @@ var server = app.listen(PORT, function () {
     console.log("Server listening on port", PORT);
 });
 server.on("error", function (error) { return console.log("Error en servidor", error); });
+app.engine("hbs", (0, express_handlebars_1.default)({
+    extname: ".hbs",
+    defaultLayout: "index.hbs",
+    layoutsDir: __dirname + "/views/layouts",
+    partialsDir: __dirname + "/views/partials",
+}));
+app.set("views", "./views");
+app.set("view engine", "hbs");
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use(express_1.default.static("public"));
 app.use("/api", productsRouter);
+app.get("/products/view", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        res.render("list", { data: _product.getProducts() });
+        return [2 /*return*/];
+    });
+}); });
 productsRouter.get("/products/list", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         res.json(_product.getProducts());
@@ -94,7 +109,8 @@ productsRouter.post("/products/save", function (req, res) { return __awaiter(voi
     var _a, title, price, thumbnail;
     return __generator(this, function (_b) {
         _a = req.body, title = _a.title, price = _a.price, thumbnail = _a.thumbnail;
-        res.json(_product.save(new Product_1.default(title, price, thumbnail)));
+        _product.save(new Product_1.default(title, price, thumbnail));
+        res.redirect("../../");
         return [2 /*return*/];
     });
 }); });
