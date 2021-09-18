@@ -1,7 +1,6 @@
 import express, { Router } from "express";
 import { Server } from "http";
 import Product from "./src/model/Product";
-import ejs from 'ejs'
 
 const _product: Product = new Product();
 
