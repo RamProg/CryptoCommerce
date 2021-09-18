@@ -1,13 +1,13 @@
 import express, { Router } from "express";
 import { Server } from "http";
 import Product from "./src/model/Product";
-import handlebars from "express-handlebars";
+import ejs from 'ejs'
 
 const _product: Product = new Product();
 
 const app = express();
 
-const PORT: string | number = process.env.PORT || 8080;
+const PORT: number = Number(process.env.PORT) || 8080;
 
 const productsRouter: Router = Router();
 
@@ -17,18 +17,7 @@ const server: Server = app.listen(PORT, () => {
 
 server.on("error", (error) => console.log("Error en servidor", error));
 
-app.engine(
-  "hbs",
-  handlebars({
-    extname: ".hbs",
-    defaultLayout: "index.hbs",
-    layoutsDir: __dirname + "/views/layouts",
-    partialsDir: __dirname + "/views/partials",
-  })
-);
-
-app.set("views", "./views");
-app.set("view engine", "hbs");
+app.set('view engine', 'ejs');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -36,7 +25,7 @@ app.use(express.static("public"));
 app.use("/api", productsRouter);
 
 app.get("/products/view", async (req: any, res: any) => {
-  res.render("list", { data: _product.getProducts() });
+  res.render("./layouts/index", { data: _product.getProducts() });
 });
 
 productsRouter.get("/products/list", async (req: any, res: any) => {

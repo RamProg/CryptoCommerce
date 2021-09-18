@@ -1,0 +1,30 @@
+<h1>Products</h1>
+<% if (data) { %>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Title</th>
+                <th scope="col">Price</th>
+                <th scope="col">Thumbnail</th>
+            </tr>
+        </thead>
+        <% data.map(e => { %>
+            <tr>
+                <th scope="row">
+                    <%= e.id %>
+                </th>
+                <td>
+                    <%= e.title %>
+                </td>
+                <td>
+                    <%= e.price %>
+                </td>
+                <td><img src=<%=e.thumbnail %> width="25" height="25"></img>
+                </td>
+            </tr>
+            <% }); %>
+    </table>
+    <% } else { %>
+        <h3>No hay productos</h3>
+        <% } %>
