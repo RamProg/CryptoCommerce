@@ -25,7 +25,7 @@ app.use(express.static("public"));
 app.use("/api", productsRouter);
 
 app.get("/products/view", async (req: any, res: any) => {
-  res.render("list.pug", { data: _product.getProducts() });
+  res.render("layouts/index.pug", { data: _product.getProducts() });
 });
 
 productsRouter.get("/products/list", async (req: any, res: any) => {

@@ -1,18 +1,21 @@
-html 
-    head
-        title="Mi página con un componente de barra de progreso" 
-    body
-        h1(
-            style={color: 'blue'}
-        ) !{titulo}
-        span=min
-        meter(
-            min=min
-            max=max
-            value=nivel
-            style={'margin-left': '10px', 'margin-right': '10px', width: '200px'}
-        )
-        span=max
+h1 Products
+    if data.length
+        table.table
+            thead
+                tr
+                    th(scope="col") #
+                    th(scope="col") Title
+                    th(scope="col") Price
+                    th(scope="col") Thumbnail
+            for e in data
+                tr
+                    th(scope="row")=e.id
+                    th(scope="row")=e.title
+                    th(scope="row")=e.price
+                    th
+                        img(src=e.thumbnail width="25" height="25")
+    else
+        h3 No hay productos
 
 //- <h1>Products</h1>
 //- {{#if data }}
