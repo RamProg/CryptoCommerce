@@ -4,8 +4,8 @@
     "description": "",
     "main": "server.js",
     "scripts": {
-        "start": "npx ts-node server.js",
-        "dev": "nodemon server.ts",
+        "start": "npm i && npx ts-node server.js",
+        "dev": "npm i && nodemon server.ts",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",
