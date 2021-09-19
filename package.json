@@ -16,7 +16,6 @@
     "devDependencies": {
         "@types/ejs": "^3.1.0",
         "@types/express": "^4.17.13",
-        "@types/express-handlebars": "^5.3.1",
         "@types/node": "^16.7.10",
         "ejs": "^3.1.6",
         "nodemon": "^2.0.12",
