@@ -1,21 +1,33 @@
 import express, { Router } from "express";
-import { Server } from "http";
+import { Server as HttpServer } from "http";
+import { Server as IOServer, Socket } from "socket.io";
 import Product from "./src/model/Product";
 import handlebars from "express-handlebars";
 
 const _product: Product = new Product();
 
 const app = express();
+const httpServer: HttpServer = new HttpServer(app);
+const io: IOServer = new IOServer(httpServer);
 
-const PORT: string | number = process.env.PORT || 8080;
+const PORT: number = Number(process.env.PORT) || 8080;
 
 const productsRouter: Router = Router();
 
-const server: Server = app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log("Server listening on port", PORT);
 });
 
-server.on("error", (error) => console.log("Error en servidor", error));
+httpServer.on("error", (error) => console.log("Error en servidor", error));
+
+io.on("connection", (socket) => {
+
+  socket.on("update", (data) => {
+    const { title, price, thumbnail } = data;
+    const newProduct = _product.save(new Product(title, price, thumbnail));
+    io.sockets.emit('refresh', newProduct);
+  });
+});
 
 app.engine(
   "hbs",
@@ -36,7 +48,11 @@ app.use(express.static("public"));
 app.use("/api", productsRouter);
 
 app.get("/products/view", async (req: any, res: any) => {
-  res.render("list", { data: _product.getProducts() });
+  res.render("partials/list", { data: _product.getProducts() });
+});
+
+app.get("/", async (req: any, res: any) => {
+  res.render("layouts/index", { data: _product.getProducts() });
 });
 
 productsRouter.get("/products/list", async (req: any, res: any) => {
@@ -53,7 +69,6 @@ productsRouter.get("/products/list/:id", async (req: any, res: any) => {
 productsRouter.post("/products/save", async (req: any, res: any) => {
   const { title, price, thumbnail } = req.body;
   _product.save(new Product(title, price, thumbnail));
-  res.redirect("../../");
 });
 
 productsRouter.put("/products/update/:id", async (req: any, res: any) => {
