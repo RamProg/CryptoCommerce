@@ -5,8 +5,11 @@
     "main": "server.js",
     "scripts": {
         "start": "npm i && ts-node server.ts",
+        "es5": "npm i && node server.js",
         "dev": "nodemon server.ts",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "ServerES6toJS5": "babel server.es6.js --out-file server.js",
+        "ServerTStoJS5": "tsc --target es5"
     },
     "author": "",
     "license": "ISC",
@@ -18,10 +21,15 @@
         "socket.io": "^4.2.0"
     },
     "devDependencies": {
+        "@babel/core": "^7.15.5",
+        "@babel/node": "^7.15.4",
+        "@babel/preset-env": "^7.15.6",
         "@types/express": "^4.17.13",
         "@types/express-handlebars": "^5.3.1",
         "@types/node": "^16.7.10",
+        "babel-cli": "^6.26.0",
         "nodemon": "^2.0.12",
-        "ts-node": "^10.2.1"
+        "ts-node": "^10.2.1",
+        "typescript": "^4.4.3"
     }
 }

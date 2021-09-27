@@ -39,8 +39,8 @@ export default class Product {
     return product;
   }
 
-  delete(id: string): object | undefined {
-    let deleted = products.find((e) => e.id === id);
+  delete(id: string): object {
+    let deleted = products.find((e) => e.id === id) ?? {};
     products = products.filter((e) => e.id !== id);
     return deleted;
   }

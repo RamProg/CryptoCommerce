@@ -11,13 +11,17 @@ export default class Message {
     this.content = content;
   }
 
-  static getAllMessages = async function (): Promise<object[] | void> {
+  static getAllMessages = async function (): Promise<object[]> {
     try {
-      const response = fs.readFileSync("./src/data/messages.json", "utf-8");
+      const response: string = fs.readFileSync(
+        "./src/data/messages.json",
+        "utf-8"
+      );
       return JSON.parse(response);
-    } catch (error) {
+    } catch (error: Error | unknown) {
       console.log(error);
     }
+    return [];
   };
 
   static async addMessage(
@@ -25,15 +29,15 @@ export default class Message {
     time: string,
     content: string
   ): Promise<void> {
-    const oldMessages = await this.getAllMessages();
-    const newMessage = new Message(mail, time, content);
-    const allMessages = oldMessages?.length
+    const oldMessages: object[] = await this.getAllMessages();
+    const newMessage: Message = new Message(mail, time, content);
+    const allMessages: object[] = oldMessages?.length
       ? [...oldMessages, newMessage]
       : [newMessage];
-    const allMessagesString = JSON.stringify(allMessages);
+    const allMessagesString: string = JSON.stringify(allMessages);
     try {
       fs.writeFileSync("./src/data/messages.json", allMessagesString);
-    } catch (error) {
+    } catch (error: Error | unknown) {
       console.log(error);
     }
   }
