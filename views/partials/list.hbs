@@ -9,6 +9,7 @@
                 <th scope="col">Thumbnail</th>
             </tr>
         </thead>
+        <tbody id="pl">
         {{#each data}}
             <tr>
                 <th scope="row">{{this.id}}</th>
@@ -17,6 +18,7 @@
                 <td><img src={{this.thumbnail}} width="25" height="25"></img></td>
             </tr>
         {{/each}}
+        </tbody>
     </table>
 {{else}}
     <h3>No hay productos</h3>

@@ -7,8 +7,21 @@ socket.on("refresh", (data) => {
     <td>${data.price}</td>
     <td><img src=${data.thumbnail} width="25" height="25"></img></td>
     </tr>`;
-  const tbody = document.getElementsByTagName("TBODY")[0];
+  const tbody = document.getElementById("pl");
   tbody.innerHTML += template;
+});
+
+socket.on("newChat", (data) => {
+  const template = `<tr>
+    <td style="color: blue; font-weight: bold;">${data.mail}</td>
+    <td style="color: brown;">${data.time}</td>
+    <td style="color: green; font-style: italic;">${data.content}</td>
+    </tr>`;
+  const tbody = document.getElementById("cl");
+  tbody.innerHTML += template;
+  if (document.getElementById("empty-chat"))
+    document.getElementById("empty-chat").style.display = "none";
+  document.getElementById("chat-table").style.removeProperty("display");
 });
 
 function addProduct() {
@@ -19,3 +32,9 @@ function addProduct() {
   return false;
 }
 
+function addChat() {
+  const mail = document?.getElementsByName("mail")[0]?.value;
+  const content = document?.getElementsByName("content")[0]?.value;
+  socket.emit("newMessage", { mail, content });
+  return false;
+}

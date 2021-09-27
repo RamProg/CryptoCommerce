@@ -17,23 +17,25 @@
   <body>
         <h1>Ingreso de Productos</h1>
 
-    <form onsubmit="return addProduct()" style="margin: 20px">
+    <form onsubmit="return addProduct()" style="margin: 20px;">
         <legend>Producto</legend>
+      <div style= "display: inline-flex;">
         <div class="form-group">
             <label for="title">Título</label>
-            <input name="title" type="text" placeholder="Ingresar título" />
+            <input style="width: 40vh" name="title" type="text" placeholder="Ingresar título" />
         </div>
         <div class="form-group">
             <label for="price">Precio</label>
-            <input name="price" type="number" placeholder="Ingresar precio" />
+            <input style="width: 20vh" name="price" type="number" placeholder="Ingresar precio" />
         </div>
         <div class="form-group">
             <label for="thumbnail">Thumbnail</label>
-            <input name="thumbnail" type="text" placeholder="Ingresar Thumbnail" />
-        </div>
+            <input style="width: 40vh" name="thumbnail" type="text" placeholder="Ingresar Thumbnail" />
+        </div></div>
         <input type="submit" class="btn btn-primary" value="Agregar Producto" />
     </form>
     {{> list }}
+    {{> chat }}
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
       integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"

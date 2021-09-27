@@ -5,7 +5,7 @@
     "main": "server.js",
     "scripts": {
         "start": "npm i && ts-node server.ts",
-        "dev": "npm i && nodemon server.ts",
+        "dev": "nodemon server.ts",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",
@@ -14,6 +14,7 @@
         "@types/socket.io": "^3.0.2",
         "express": "^4.17.1",
         "express-handlebars": "^5.3.3",
+        "moment": "^2.29.1",
         "socket.io": "^4.2.0"
     },
     "devDependencies": {

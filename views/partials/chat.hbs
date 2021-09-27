@@ -1,0 +1,49 @@
+<h1>Mensajes</h1>
+<form onsubmit="return addChat()" style="margin: 20px;">
+  <legend>Nuevo Mensaje</legend>
+  <div style="display: inline-flex;">
+    <div class="form-group">
+      <label for="mail">Mail</label>
+      <input
+        style="width: 50vh; margin-right: 20px;"
+        name="mail"
+        type="text"
+        placeholder="Email"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="content">Mensaje</label>
+      <input
+        style="width: 50vh; margin-right: 20px;"
+        name="content"
+        type="text"
+        placeholder="Enter Message"
+      />
+    </div>
+  </div>
+  <input type="submit" class="btn btn-primary" value="Send" />
+</form>
+{{#if messages}}
+<table id="chat-table" class="table">
+{{else}}
+<h3 id="empty-chat">Chat vacío</h3>
+<table id="chat-table" class="table" style="display: none">
+{{/if}}
+  <thead>
+    <tr>
+      <th style="width: 25vh;" scope="col">Email</th>
+      <th style="width: 25vh;" scope="col">Time</th>
+      <th style="width: 75vh;" scope="col">Message</th>
+    </tr>
+  </thead>
+  <tbody id="cl">
+    {{#each messages}}
+      <tr>
+        <td style="color: blue; font-weight: bold;">{{this.mail}}</td>
+        <td style="color: brown;">{{this.time}}</td>
+        <td style="color: green; font-style: italic;">{{this.content}}</td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

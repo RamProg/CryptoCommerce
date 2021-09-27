@@ -3,6 +3,8 @@ import { Server as HttpServer } from "http";
 import { Server as IOServer, Socket } from "socket.io";
 import Product from "./src/model/Product";
 import handlebars from "express-handlebars";
+import Message from "./src/model/Message";
+import moment from "moment";
 
 const _product: Product = new Product();
 
@@ -21,11 +23,16 @@ httpServer.listen(PORT, () => {
 httpServer.on("error", (error) => console.log("Error en servidor", error));
 
 io.on("connection", (socket) => {
-
   socket.on("update", (data) => {
     const { title, price, thumbnail } = data;
     const newProduct = _product.save(new Product(title, price, thumbnail));
-    io.sockets.emit('refresh', newProduct);
+    io.sockets.emit("refresh", newProduct);
+  });
+  socket.on("newMessage", (data) => {
+    const time = moment().format("DD/MM/YYYY HH:MM:SS").toString();
+    data.time = `[${time}]: `;
+    Message.addMessage(data.mail, data.time, data.content);
+    io.sockets.emit("newChat", data);
   });
 });
 
@@ -52,7 +59,10 @@ app.get("/products/view", async (req: any, res: any) => {
 });
 
 app.get("/", async (req: any, res: any) => {
-  res.render("layouts/index", { data: _product.getProducts() });
+  res.render("layouts/index", {
+    data: _product.getProducts(),
+    messages: await Message.getAllMessages(),
+  });
 });
 
 productsRouter.get("/products/list", async (req: any, res: any) => {
