@@ -1,5 +1,4 @@
 import fs from "fs";
-import __products from "../data/products.json";
 
 const getLastId = () => {
   try {
@@ -8,7 +7,7 @@ const getLastId = () => {
       "utf-8"
     );
     const parsedResponse = JSON.parse(response);
-    return parseInt(parsedResponse[parsedResponse.length - 1].id) || 0;
+    return parseInt(parsedResponse[parsedResponse.length - 1]?.id) || 0;
   } catch (error: Error | unknown) {
     console.log(error);
   }

@@ -6,6 +6,7 @@ import { Server as IOServer } from "socket.io";
 // Model
 import Product from "./src/model/Product";
 import Message from "./src/model/Message";
+import Cart from "./src/model/Cart";
 
 // Libraries
 import handlebars from "express-handlebars";
@@ -19,6 +20,9 @@ const PORT: number = Number(process.env.PORT) || 8080;
 
 const productsRouter: Router = Router();
 const cartRouter: Router = Router();
+
+const administrator: boolean = false;
+const cart: Cart = new Cart();
 
 httpServer.listen(PORT, () => {
   console.log("Server listening on port", PORT);
@@ -90,6 +94,13 @@ productsRouter.get("/list/:id", async (req: Request, res: Response) => {
 });
 
 productsRouter.post("/add", async (req: Request, res: Response) => {
+  if (!administrator) {
+    res.json({
+      error: -1,
+      description: "ruta /add método POST no autorizado",
+    });
+    return;
+  }
   const { name, description, code, thumbnail, price, stock } = req.body;
   if (!name || !description || !code || !thumbnail || !price || !stock) {
     res.json({
@@ -98,7 +109,14 @@ productsRouter.post("/add", async (req: Request, res: Response) => {
     });
   } else {
     try {
-      Product.save(name, description, code, thumbnail, price, stock);
+      Product.save(
+        name,
+        description,
+        code,
+        thumbnail,
+        Number(price),
+        Number(stock)
+      );
       res.json({
         success: "The product was added",
       });
@@ -108,29 +126,64 @@ productsRouter.post("/add", async (req: Request, res: Response) => {
   }
 });
 
-productsRouter.patch(
-  "/update/:id",
-  async (req: Request, res: Response) => {
-    const { name, description, code, thumbnail, price, stock } = req.body;
-    res.json(
-      await Product.update(
-        req.params?.id,
-        name,
-        description,
-        code,
-        thumbnail,
-        price,
-        stock
-      )
-    );
+productsRouter.patch("/update/:id", async (req: Request, res: Response) => {
+  if (!administrator) {
+    res.json({
+      error: -1,
+      description: "ruta /update/:id método PATCH no autorizado",
+    });
+    return;
   }
-);
+  const { name, description, code, thumbnail, price, stock } = req.body;
+  res.json(
+    await Product.update(
+      req.params?.id,
+      name,
+      description,
+      code,
+      thumbnail,
+      Number(price),
+      Number(stock)
+    )
+  );
+});
 
-productsRouter.delete(
-  "/delete/:id",
-  async (req: Request, res: Response) => {
-    const result = await Product.delete(req.params?.id);
-    if (!result) res.json({error: "The element does not exist."})
-    res.json(result);
+productsRouter.delete("/delete/:id", async (req: Request, res: Response) => {
+  if (!administrator) {
+    res.json({
+      error: -1,
+      description: "ruta /delete/:id método DELETE no autorizado",
+    });
+    return;
   }
-);
+  const result = await Product.delete(req.params?.id);
+  if (!result) res.json({ error: "The element does not exist." });
+  res.json(result);
+});
+
+cartRouter.get("/list", async (req: Request, res: Response) => {
+  res.json(cart.getCart());
+});
+
+cartRouter.get("/list/:id", async (req: Request, res: Response) => {
+  res.json(cart.getCart()); // for this deliverable I'm only using one default cart
+});
+
+cartRouter.post("/add/:id_product", async (req: Request, res: Response) => {
+  const product: object | undefined = await Product.getProduct(
+    req.params?.id_product
+  );
+  if (product) {
+    await cart.addToCart(product as Product);
+    res.json({success: "Succesfully added to cart"});
+  }
+  else {
+    res.json({error: "The provided id does not exist." })
+  }
+});
+
+cartRouter.delete("/delete/:id", async (req: Request, res: Response) => {
+    const remove = await cart.removeFromCart(req.params?.id?.toString());
+    if (remove) res.json({success: "Succesfully removed from cart"});
+    else res.json({success: "The provided id does not exist in this cart."});
+});

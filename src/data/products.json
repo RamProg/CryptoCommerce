@@ -1,10 +1,31 @@
 [{
-    "id": "1",
-    "timestamp": "1633212808",
-    "name": "Bitcoin",
-    "description": "Bitcoin is a digital currency which operates free of any central control or the oversight of banks or governments.",
-    "code": "btc",
-    "thumbnail": "https://cdn3.iconfinder.com/data/icons/currency-and-cryptocurrency-signs/64/cryptocurrency_blockchain_Bitcoin_BTC-512.png",
-    "price": 45000,
-    "stock": 17
-}]
+        "id": "1",
+        "timestamp": "1633212808",
+        "name": "Bitcoin",
+        "description": "Bitcoin is a digital currency which operates free of any central control or the oversight of banks or governments.",
+        "code": "btc",
+        "thumbnail": "https://cdn3.iconfinder.com/data/icons/currency-and-cryptocurrency-signs/64/cryptocurrency_blockchain_Bitcoin_BTC-512.png",
+        "price": 45000,
+        "stock": 17
+    },
+    {
+        "id": "2",
+        "timestamp": "1633225775043",
+        "name": "Ethereum",
+        "description": "adasdasdsad",
+        "code": "eth",
+        "thumbnail": "https://cdn3.iconfinder.com/data/icons/currency-and-cryptocurrency-signs/64/cryptocurrency_blockchain_Ethereum_ETH-256.png",
+        "price": 3300,
+        "stock": 23
+    },
+    {
+        "id": "3",
+        "timestamp": "1633225781548",
+        "name": "Litecoin",
+        "description": "adasdasdsad",
+        "code": "ltc",
+        "thumbnail": "https://cdn3.iconfinder.com/data/icons/currency-and-cryptocurrency-signs/64/cryptocurrency_blockchain_Ethereum_ETH-256.png",
+        "price": 3300,
+        "stock": 23
+    }
+]
