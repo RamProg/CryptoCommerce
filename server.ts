@@ -11,8 +11,6 @@ import Message from "./src/model/Message";
 import handlebars from "express-handlebars";
 import moment from "moment";
 
-const _product: Product = new Product();
-
 const app = express();
 const httpServer: HttpServer = new HttpServer(app);
 const io: IOServer = new IOServer(httpServer);
@@ -20,6 +18,7 @@ const io: IOServer = new IOServer(httpServer);
 const PORT: number = Number(process.env.PORT) || 8080;
 
 const productsRouter: Router = Router();
+const cartRouter: Router = Router();
 
 httpServer.listen(PORT, () => {
   console.log("Server listening on port", PORT);
@@ -29,8 +28,16 @@ httpServer.on("error", (error) => console.log("Error en servidor", error));
 
 io.on("connection", (socket) => {
   socket.on("update", (data) => {
-    const { title, price, thumbnail } = data;
-    const newProduct: Product = _product.save(new Product(title, price, thumbnail));
+    const { name, description, code, thumbnail, price, stock } = data;
+    const newProduct: any = Product.save(
+      name,
+      description,
+      code,
+      thumbnail,
+      price,
+      stock
+    );
+
     io.sockets.emit("refresh", newProduct);
   });
   socket.on("newMessage", (data) => {
@@ -57,40 +64,73 @@ app.set("view engine", "hbs");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
-app.use("/api", productsRouter);
+app.use("/products", productsRouter);
+app.use("/cart", cartRouter);
 
 app.get("/products/view", async (req: Request, res: Response) => {
-  res.render("partials/list", { data: _product.getProducts() });
+  res.render("partials/list", { data: Product.getProducts() });
 });
 
 app.get("/", async (req: Request, res: Response) => {
   res.render("layouts/index", {
-    data: _product.getProducts(),
+    data: Product.getProducts(),
     messages: await Message.getAllMessages(),
   });
 });
 
-productsRouter.get("/products/list", async (req: Request, res: Response) => {
-  res.json(_product.getProducts());
+productsRouter.get("/list", async (req: Request, res: Response) => {
+  res.json(await Product.getProducts());
 });
 
-productsRouter.get("/products/list/:id", async (req: Request, res: Response) => {
-  const products: Product[] = _product.getProducts();
+productsRouter.get("/list/:id", async (req: Request, res: Response) => {
+  const products: any = await Product.getProducts();
   if (!products?.length) res.json({ error: "No available data" });
-  const product: object | undefined = _product.getProduct(req.params?.id);
+  const product: object | undefined = await Product.getProduct(req.params?.id);
   product ? res.json(product) : res.json({ error: "Product doesn't exist" });
 });
 
-productsRouter.post("/products/save", async (req: Request, res: Response) => {
-  const { title, price, thumbnail } = req.body;
-  _product.save(new Product(title, price, thumbnail));
+productsRouter.post("/add", async (req: Request, res: Response) => {
+  const { name, description, code, thumbnail, price, stock } = req.body;
+  if (!name || !description || !code || !thumbnail || !price || !stock) {
+    res.json({
+      error:
+        "Insufficient parameters. Must contain name, description, code, thumbnail, price and stock",
+    });
+  } else {
+    try {
+      Product.save(name, description, code, thumbnail, price, stock);
+      res.json({
+        success: "The product was added",
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
 });
 
-productsRouter.put("/products/update/:id", async (req: Request, res: Response) => {
-  const { title, price, thumbnail } = req.body;
-  res.json(_product.update(req.params?.id, title, price, thumbnail));
-});
+productsRouter.patch(
+  "/update/:id",
+  async (req: Request, res: Response) => {
+    const { name, description, code, thumbnail, price, stock } = req.body;
+    res.json(
+      await Product.update(
+        req.params?.id,
+        name,
+        description,
+        code,
+        thumbnail,
+        price,
+        stock
+      )
+    );
+  }
+);
 
-productsRouter.delete("/products/delete/:id", async (req: Request, res: Response) => {
-  res.json(_product.delete(req.params?.id));
-});
+productsRouter.delete(
+  "/delete/:id",
+  async (req: Request, res: Response) => {
+    const result = await Product.delete(req.params?.id);
+    if (!result) res.json({error: "The element does not exist."})
+    res.json(result);
+  }
+);

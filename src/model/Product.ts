@@ -1,47 +1,141 @@
+import fs from "fs";
 import __products from "../data/products.json";
 
-let products: any[] = __products;
+const getLastId = () => {
+  try {
+    const response: string = fs.readFileSync(
+      "./src/data/products.json",
+      "utf-8"
+    );
+    const parsedResponse = JSON.parse(response);
+    return parseInt(parsedResponse[parsedResponse.length - 1].id) || 0;
+  } catch (error: Error | unknown) {
+    console.log(error);
+  }
+  return 0;
+};
 
+let lastId = getLastId();
 export default class Product {
   id: string;
-  title: string;
-  price: number;
+  timestamp: string;
+  name: string;
+  description: string;
+  code: string;
   thumbnail: string;
-  constructor(title?: string, price?: number, thumbnail?: string) {
-    this.id = this.generateId().toString();
-    this.title = title ?? "";
-    this.price = price ?? 0;
-    this.thumbnail = thumbnail ?? "";
+  price: number;
+  stock: number;
+  constructor(
+    name: string,
+    description: string,
+    code: string,
+    thumbnail: string,
+    price: number,
+    stock: number
+  ) {
+    this.id = Product.generateId().toString();
+    this.timestamp = new Date().getTime().toString();
+    this.name = name;
+    this.description = description;
+    this.code = code;
+    this.thumbnail = thumbnail;
+    this.price = price;
+    this.stock = stock;
   }
 
-  private generateId() {
-    return products.length + 1;
-  }
-
-  getProducts = function () {
-    return products;
+  static getProducts = async function (): Promise<any[]> {
+    try {
+      const response: string = fs.readFileSync(
+        "./src/data/products.json",
+        "utf-8"
+      );
+      return JSON.parse(response);
+    } catch (error: Error | unknown) {
+      console.log(error);
+    }
+    return [];
   };
 
-  getProduct(id: string): object | undefined {
-    return products.find((e) => e.id === id);
-  }
-  save(product: Product): Product {
-    products.push(product);
-    return product;
-  }
-  update(id: string, title?: string, price?: number, thumbnail?: string) {
-    const product: any = this.getProduct(id);
-    if (product) {
-      title && (product.title = title);
-      price && (product.price = price);
-      thumbnail && (product.thumbnail = thumbnail);
-    }
-    return product;
+  private static generateId(): string {
+    return (++lastId).toString();
   }
 
-  delete(id: string): object {
-    let deleted = products.find((e) => e.id === id) ?? {};
-    products = products.filter((e) => e.id !== id);
-    return deleted;
+  static async getProduct(id: string): Promise<object | undefined> {
+    try {
+      const response = await this.getProducts();
+      return response.find((e) => e.id === id);
+    } catch (error) {
+      console.log(error);
+    }
+    return;
+  }
+
+  static async save(
+    name: string,
+    description: string,
+    code: string,
+    thumbnail: string,
+    price: number,
+    stock: number
+  ): Promise<Product> {
+    const oldProducts: object[] = await this.getProducts();
+    const newProduct: Product = new Product(
+      name,
+      description,
+      code,
+      thumbnail,
+      price,
+      stock
+    );
+    const allProducts: object[] = oldProducts?.length
+      ? [...oldProducts, newProduct]
+      : [newProduct];
+    const allProductsString: string = JSON.stringify(allProducts);
+    try {
+      fs.writeFileSync("./src/data/products.json", allProductsString);
+    } catch (error: Error | unknown) {
+      console.log(error);
+    }
+    return newProduct;
+  }
+  static async update(
+    id: string,
+    name?: string,
+    description?: string,
+    code?: string,
+    thumbnail?: string,
+    price?: number,
+    stock?: number
+  ) {
+    const products: any = await this.getProducts();
+    const productToUpdate = products.filter((e: Product) => e.id === id)[0];
+    if (!productToUpdate) return;
+    if (name) productToUpdate.name = name;
+    if (description) productToUpdate.description = description;
+    if (code) productToUpdate.code = code;
+    if (thumbnail) productToUpdate.thumbnail = thumbnail;
+    if (price) productToUpdate.price = price;
+    if (stock) productToUpdate.stock = stock;
+    try {
+      fs.writeFileSync("./src/data/products.json", JSON.stringify(products));
+    } catch (error: Error | unknown) {
+      console.log(error);
+    }
+    return productToUpdate;
+  }
+
+  static async delete(id: string): Promise<object | undefined> {
+    const products: any = await this.getProducts();
+    const productsWithoutElement = products.filter((e: Product) => e.id !== id);
+    if (products.length === productsWithoutElement.length) return;
+    try {
+      fs.writeFileSync(
+        "./src/data/products.json",
+        JSON.stringify(productsWithoutElement)
+      );
+    } catch (error: Error | unknown) {
+      console.log(error);
+    }
+    return products.filter((e: Product) => e.id === id);
   }
 }
