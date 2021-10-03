@@ -21,7 +21,7 @@ const PORT: number = Number(process.env.PORT) || 8080;
 const productsRouter: Router = Router();
 const cartRouter: Router = Router();
 
-const administrator: boolean = false;
+const administrator: boolean = true;
 const cart: Cart = new Cart();
 
 httpServer.listen(PORT, () => {
