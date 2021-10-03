@@ -1,6 +1,10 @@
 [{
     "id": "1",
-    "title": "Bitcoin",
+    "timestamp": "1633212808",
+    "name": "Bitcoin",
+    "description": "Bitcoin is a digital currency which operates free of any central control or the oversight of banks or governments.",
+    "code": "btc",
+    "thumbnail": "https://cdn3.iconfinder.com/data/icons/currency-and-cryptocurrency-signs/64/cryptocurrency_blockchain_Bitcoin_BTC-512.png",
     "price": 45000,
-    "thumbnail": "https://cdn3.iconfinder.com/data/icons/currency-and-cryptocurrency-signs/64/cryptocurrency_blockchain_Bitcoin_BTC-512.png"
+    "stock": 17
 }]
