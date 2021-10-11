@@ -12,6 +12,11 @@ import Cart from "./src/model/Cart";
 import handlebars from "express-handlebars";
 import moment from "moment";
 
+// DB
+import { initializeSqlite } from "./src/knex/Messages";
+import { initializeMariaDB } from "./src/knex/Products";
+
+
 const app = express();
 const httpServer: HttpServer = new HttpServer(app);
 const io: IOServer = new IOServer(httpServer);
@@ -23,6 +28,9 @@ const cartRouter: Router = Router();
 
 const administrator: boolean = true;
 const cart: Cart = new Cart();
+
+initializeMariaDB();
+initializeSqlite();
 
 httpServer.listen(PORT, () => {
   console.log("Server listening on port", PORT);
@@ -72,12 +80,12 @@ app.use("/products", productsRouter);
 app.use("/cart", cartRouter);
 
 app.get("/products/view", async (req: Request, res: Response) => {
-  res.render("partials/list", { data: Product.getProducts() });
+  res.render("partials/list", { data: await Product.getProducts() });
 });
 
 app.get("/", async (req: Request, res: Response) => {
   res.render("layouts/index", {
-    data: Product.getProducts(),
+    data: await Product.getProducts(),
     messages: await Message.getAllMessages(),
   });
 });
@@ -157,6 +165,8 @@ productsRouter.delete("/delete/:id", async (req: Request, res: Response) => {
     return;
   }
   const result = await Product.delete(req.params?.id);
+  console.log(result);
+  
   if (!result) res.json({ error: "The element does not exist." });
   res.json(result);
 });
@@ -175,15 +185,14 @@ cartRouter.post("/add/:id_product", async (req: Request, res: Response) => {
   );
   if (product) {
     await cart.addToCart(product as Product);
-    res.json({success: "Succesfully added to cart"});
-  }
-  else {
-    res.json({error: "The provided id does not exist." })
+    res.json({ success: "Succesfully added to cart" });
+  } else {
+    res.json({ error: "The provided id does not exist." });
   }
 });
 
 cartRouter.delete("/delete/:id", async (req: Request, res: Response) => {
-    const remove = await cart.removeFromCart(req.params?.id?.toString());
-    if (remove) res.json({success: "Succesfully removed from cart"});
-    else res.json({success: "The provided id does not exist in this cart."});
+  const remove = await cart.removeFromCart(req.params?.id?.toString());
+  if (remove) res.json({ success: "Succesfully removed from cart" });
+  else res.json({ success: "The provided id does not exist in this cart." });
 });

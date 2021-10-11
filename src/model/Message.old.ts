@@ -1,4 +1,5 @@
-import { getAllMessagesFromDB, addMessageToDB } from "../knex/Messages";
+import _messages from "../data/messages.json";
+import fs from "fs";
 
 export default class Message {
   mail: string;
@@ -12,8 +13,11 @@ export default class Message {
 
   static getAllMessages = async function (): Promise<object[]> {
     try {
-      const response = await getAllMessagesFromDB()
-      return response;
+      const response: string = fs.readFileSync(
+        "./src/data/messages.json",
+        "utf-8"
+      );
+      return JSON.parse(response);
     } catch (error: Error | unknown) {
       console.log(error);
     }
@@ -25,9 +29,14 @@ export default class Message {
     time: string,
     content: string
   ): Promise<void> {
+    const oldMessages: object[] = await this.getAllMessages();
     const newMessage: Message = new Message(mail, time, content);
+    const allMessages: object[] = oldMessages?.length
+      ? [...oldMessages, newMessage]
+      : [newMessage];
+    const allMessagesString: string = JSON.stringify(allMessages);
     try {
-      addMessageToDB(newMessage);
+      fs.writeFileSync("./src/data/messages.json", allMessagesString);
     } catch (error: Error | unknown) {
       console.log(error);
     }

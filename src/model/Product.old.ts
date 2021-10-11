@@ -1,12 +1,16 @@
-import {
-  getAllProducts,
-  getProductFromDB,
-  addProductToDB,
-  deleteProductFromDB,
-  updateProductFromDB,
-} from "../knex/Products";
+import fs from "fs";
 
 const getLastId = () => {
+  try {
+    const response: string = fs.readFileSync(
+      "./src/data/products.json",
+      "utf-8"
+    );
+    const parsedResponse = JSON.parse(response);
+    return parseInt(parsedResponse[parsedResponse.length - 1]?.id) || 0;
+  } catch (error: Error | unknown) {
+    console.log(error);
+  }
   return 0;
 };
 
@@ -40,8 +44,11 @@ export default class Product {
 
   static getProducts = async function (): Promise<any[]> {
     try {
-      const response = await getAllProducts();
-      return response;
+      const response: string = fs.readFileSync(
+        "./src/data/products.json",
+        "utf-8"
+      );
+      return JSON.parse(response);
     } catch (error: Error | unknown) {
       console.log(error);
     }
@@ -52,10 +59,10 @@ export default class Product {
     return (++lastId).toString();
   }
 
-  static async getProduct(id: string): Promise<Product | undefined> {
+  static async getProduct(id: string): Promise<object | undefined> {
     try {
-      const response = await getProductFromDB(id);
-      return response;
+      const response = await this.getProducts();
+      return response.find((e) => e.id === id);
     } catch (error) {
       console.log(error);
     }
@@ -70,6 +77,7 @@ export default class Product {
     price: number,
     stock: number
   ): Promise<Product> {
+    const oldProducts: object[] = await this.getProducts();
     const newProduct: Product = new Product(
       name,
       description,
@@ -78,8 +86,12 @@ export default class Product {
       price,
       stock
     );
+    const allProducts: object[] = oldProducts?.length
+      ? [...oldProducts, newProduct]
+      : [newProduct];
+    const allProductsString: string = JSON.stringify(allProducts);
     try {
-      await addProductToDB(newProduct);
+      fs.writeFileSync("./src/data/products.json", allProductsString);
     } catch (error: Error | unknown) {
       console.log(error);
     }
@@ -94,10 +106,8 @@ export default class Product {
     price?: number,
     stock?: number
   ) {
-    const foundProducts = await this.getProduct(id);
-    const productToUpdate = foundProducts ? foundProducts[0] : undefined;
-    console.log("productToUpdate", productToUpdate);
-
+    const products: any = await this.getProducts();
+    const productToUpdate = products.filter((e: Product) => e.id === id)[0];
     if (!productToUpdate) return;
     if (name) productToUpdate.name = name;
     if (description) productToUpdate.description = description;
@@ -106,7 +116,7 @@ export default class Product {
     if (price) productToUpdate.price = price;
     if (stock) productToUpdate.stock = stock;
     try {
-      await updateProductFromDB(id, productToUpdate);
+      fs.writeFileSync("./src/data/products.json", JSON.stringify(products));
     } catch (error: Error | unknown) {
       console.log(error);
     }
@@ -114,13 +124,17 @@ export default class Product {
   }
 
   static async delete(id: string): Promise<object | undefined> {
-    const product = this.getProduct(id);
+    const products: any = await this.getProducts();
+    const productsWithoutElement = products.filter((e: Product) => e.id !== id);
+    if (products.length === productsWithoutElement.length) return;
     try {
-      await deleteProductFromDB(id);
-      return product;
+      fs.writeFileSync(
+        "./src/data/products.json",
+        JSON.stringify(productsWithoutElement)
+      );
     } catch (error: Error | unknown) {
       console.log(error);
     }
-    return;
+    return products.filter((e: Product) => e.id === id);
   }
 }
