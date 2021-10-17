@@ -4,7 +4,7 @@ import {
   addProductToDB,
   deleteProductFromDB,
   updateProductFromDB,
-} from "../knex/Products";
+} from "../mongoose/Products";
 
 const getLastId = () => {
   return 0;
@@ -52,7 +52,7 @@ export default class Product {
     return (++lastId).toString();
   }
 
-  static async getProduct(id: string): Promise<Product | undefined> {
+  static async getProduct(id: string): Promise<any | undefined> {
     try {
       const response = await getProductFromDB(id);
       return response;
@@ -96,7 +96,6 @@ export default class Product {
   ) {
     const foundProducts = await this.getProduct(id);
     const productToUpdate = foundProducts ? foundProducts[0] : undefined;
-    console.log("productToUpdate", productToUpdate);
 
     if (!productToUpdate) return;
     if (name) productToUpdate.name = name;
@@ -114,7 +113,7 @@ export default class Product {
   }
 
   static async delete(id: string): Promise<object | undefined> {
-    const product = this.getProduct(id);
+    const product = await this.getProduct(id);
     try {
       await deleteProductFromDB(id);
       return product;

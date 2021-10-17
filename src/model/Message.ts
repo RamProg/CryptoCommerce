@@ -1,4 +1,4 @@
-import { getAllMessagesFromDB, addMessageToDB } from "../knex/Messages";
+import { getAllMessagesFromDB, addMessageToDB } from "../mongoose/Messages";
 
 export default class Message {
   mail: string;
@@ -12,7 +12,7 @@ export default class Message {
 
   static getAllMessages = async function (): Promise<object[]> {
     try {
-      const response = await getAllMessagesFromDB()
+      const response = await getAllMessagesFromDB();
       return response;
     } catch (error: Error | unknown) {
       console.log(error);

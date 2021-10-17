@@ -6,16 +6,16 @@ import { Server as IOServer } from "socket.io";
 // Model
 import Product from "./src/model/Product";
 import Message from "./src/model/Message";
-import Cart from "./src/model/Cart";
+// import Cart from "./src/model/Cart";
 
 // Libraries
 import handlebars from "express-handlebars";
 import moment from "moment";
 
 // DB
-import { initializeSqlite } from "./src/knex/Messages";
-import { initializeMariaDB } from "./src/knex/Products";
+import { connect } from "./src/db/options/connectionMongoDB";
 
+connect();
 
 const app = express();
 const httpServer: HttpServer = new HttpServer(app);
@@ -24,13 +24,10 @@ const io: IOServer = new IOServer(httpServer);
 const PORT: number = Number(process.env.PORT) || 8080;
 
 const productsRouter: Router = Router();
-const cartRouter: Router = Router();
+// const cartRouter: Router = Router();
 
 const administrator: boolean = true;
-const cart: Cart = new Cart();
-
-initializeMariaDB();
-initializeSqlite();
+// const cart: Cart = new Cart();
 
 httpServer.listen(PORT, () => {
   console.log("Server listening on port", PORT);
@@ -60,15 +57,18 @@ io.on("connection", (socket) => {
   });
 });
 
-app.engine(
-  "hbs",
-  handlebars({
-    extname: ".hbs",
-    defaultLayout: "index.hbs",
-    layoutsDir: __dirname + "/views/layouts",
-    partialsDir: __dirname + "/views/partials",
-  })
-);
+const hbsOptions = {
+  extname: ".hbs",
+  defaultLayout: "index.hbs",
+  layoutsDir: __dirname + "/views/layouts",
+  partialsDir: __dirname + "/views/partials",
+  runtimeOptions: {
+    allowProtoPropertiesByDefault: true,
+    allowProtoMethodsByDefault: true,
+  },
+};
+
+app.engine("hbs", handlebars(hbsOptions));
 
 app.set("views", "./views");
 app.set("view engine", "hbs");
@@ -77,7 +77,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use("/products", productsRouter);
-app.use("/cart", cartRouter);
+// app.use("/cart", cartRouter);
 
 app.get("/products/view", async (req: Request, res: Response) => {
   res.render("partials/list", { data: await Product.getProducts() });
@@ -166,33 +166,33 @@ productsRouter.delete("/delete/:id", async (req: Request, res: Response) => {
   }
   const result = await Product.delete(req.params?.id);
   console.log(result);
-  
+
   if (!result) res.json({ error: "The element does not exist." });
   res.json(result);
 });
 
-cartRouter.get("/list", async (req: Request, res: Response) => {
-  res.json(cart.getCart());
-});
+// cartRouter.get("/list", async (req: Request, res: Response) => {
+//   res.json(cart.getCart());
+// });
 
-cartRouter.get("/list/:id", async (req: Request, res: Response) => {
-  res.json(cart.getCart()); // for this deliverable I'm only using one default cart
-});
+// cartRouter.get("/list/:id", async (req: Request, res: Response) => {
+//   res.json(cart.getCart()); // for this deliverable I'm only using one default cart
+// });
 
-cartRouter.post("/add/:id_product", async (req: Request, res: Response) => {
-  const product: object | undefined = await Product.getProduct(
-    req.params?.id_product
-  );
-  if (product) {
-    await cart.addToCart(product as Product);
-    res.json({ success: "Succesfully added to cart" });
-  } else {
-    res.json({ error: "The provided id does not exist." });
-  }
-});
+// cartRouter.post("/add/:id_product", async (req: Request, res: Response) => {
+//   const product: object | undefined = await Product.getProduct(
+//     req.params?.id_product
+//   );
+//   if (product) {
+//     await cart.addToCart(product as Product);
+//     res.json({ success: "Succesfully added to cart" });
+//   } else {
+//     res.json({ error: "The provided id does not exist." });
+//   }
+// });
 
-cartRouter.delete("/delete/:id", async (req: Request, res: Response) => {
-  const remove = await cart.removeFromCart(req.params?.id?.toString());
-  if (remove) res.json({ success: "Succesfully removed from cart" });
-  else res.json({ success: "The provided id does not exist in this cart." });
-});
+// cartRouter.delete("/delete/:id", async (req: Request, res: Response) => {
+//   const remove = await cart.removeFromCart(req.params?.id?.toString());
+//   if (remove) res.json({ success: "Succesfully removed from cart" });
+//   else res.json({ success: "The provided id does not exist in this cart." });
+// });
