@@ -1,10 +1,8 @@
-import {
-  getAllProducts,
-  getProductFromDB,
-  addProductToDB,
-  deleteProductFromDB,
-  updateProductFromDB,
-} from "../mongoose/Products";
+import ProductFactory from "../DAO/ProductFactory";
+import ProductInterface from "../DAO/ProductDAOInterface";
+import persistanceType from "../DAO/config";
+
+const messageDAO: ProductInterface = new ProductFactory().getMessageDAO(persistanceType);
 
 const getLastId = () => {
   return 0;
@@ -40,7 +38,7 @@ export default class Product {
 
   static getProducts = async function (): Promise<any[]> {
     try {
-      const response = await getAllProducts();
+      const response = await messageDAO.getAllProducts();
       return response;
     } catch (error: Error | unknown) {
       console.log(error);
@@ -54,7 +52,7 @@ export default class Product {
 
   static async getProduct(id: string): Promise<any | undefined> {
     try {
-      const response = await getProductFromDB(id);
+      const response = await messageDAO.getProductFromDB(id);
       return response;
     } catch (error) {
       console.log(error);
@@ -79,7 +77,7 @@ export default class Product {
       stock
     );
     try {
-      await addProductToDB(newProduct);
+      await messageDAO.addProductToDB(newProduct);
     } catch (error: Error | unknown) {
       console.log(error);
     }
@@ -105,7 +103,7 @@ export default class Product {
     if (price) productToUpdate.price = price;
     if (stock) productToUpdate.stock = stock;
     try {
-      await updateProductFromDB(id, productToUpdate);
+      await messageDAO.updateProductFromDB(id, productToUpdate);
     } catch (error: Error | unknown) {
       console.log(error);
     }
@@ -115,7 +113,7 @@ export default class Product {
   static async delete(id: string): Promise<object | undefined> {
     const product = await this.getProduct(id);
     try {
-      await deleteProductFromDB(id);
+      await messageDAO.deleteProductFromDB(id);
       return product;
     } catch (error: Error | unknown) {
       console.log(error);

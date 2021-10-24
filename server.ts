@@ -12,11 +12,6 @@ import Message from "./src/model/Message";
 import handlebars from "express-handlebars";
 import moment from "moment";
 
-// DB
-import { connect } from "./src/db/options/connectionMongoDB";
-
-connect();
-
 const app = express();
 const httpServer: HttpServer = new HttpServer(app);
 const io: IOServer = new IOServer(httpServer);

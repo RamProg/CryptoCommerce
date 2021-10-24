@@ -1,5 +1,8 @@
-import { getAllMessagesFromDB, addMessageToDB } from "../mongoose/Messages";
+import MessageFactory from "../DAO/MessageFactory";
+import MessageInterface from "../DAO/MessageDAOInterface";
+import persistanceType from "../DAO/config";
 
+const messageDAO: MessageInterface = new MessageFactory().getMessageDAO(persistanceType);
 export default class Message {
   mail: string;
   time: string;
@@ -12,7 +15,7 @@ export default class Message {
 
   static getAllMessages = async function (): Promise<object[]> {
     try {
-      const response = await getAllMessagesFromDB();
+      const response = await messageDAO.getAllMessagesFromDB();
       return response;
     } catch (error: Error | unknown) {
       console.log(error);
@@ -27,7 +30,7 @@ export default class Message {
   ): Promise<void> {
     const newMessage: Message = new Message(mail, time, content);
     try {
-      addMessageToDB(newMessage);
+      messageDAO.addMessageToDB(newMessage);
     } catch (error: Error | unknown) {
       console.log(error);
     }
