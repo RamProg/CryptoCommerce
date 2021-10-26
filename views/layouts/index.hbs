@@ -34,6 +34,56 @@
         </div></div>
         <input type="submit" class="btn btn-primary" value="Agregar Producto" />
     </form>
+
+    <form onsubmit="return filter()" style="margin: 5px;">
+        <legend>Filter</legend>
+      <div style= "display: inline-flex;">
+        <div class="form-group">
+            <label for="name">Título</label>
+            <input style="width: 40vh" name="name" type="text" placeholder="Ingresar Nombre" />
+        </div>
+      </div>
+        <input type="submit" class="btn btn-primary" value="Filtrar" />
+    </form>
+
+    <form onsubmit="return filter()" style="margin: 5px;">
+      <div style= "display: inline-flex;">
+        <div class="form-group">
+            <label for="code">Código</label>
+            <input style="width: 40vh" name="code" type="text" placeholder="Ingresar Código" />
+        </div>
+      </div>
+        <input type="submit" class="btn btn-primary" value="Filtrar" />
+    </form>
+
+        <form onsubmit="return filter()" style="margin: 5px;">
+      <div style= "display: inline-flex;">
+        <div class="form-group">
+            <label for="minPrice">Precio Mínimo</label>
+            <input style="width: 40vh" name="minPrice" type="text" placeholder="Ingresar Nombre" />
+        </div>
+        <div class="form-group">
+            <label for="maxPrice">Precio Máximo</label>
+            <input style="width: 40vh" name="maxPrice" type="text" placeholder="Ingresar Nombre" />
+        </div>
+      </div>
+        <input type="submit" class="btn btn-primary" value="Filtrar" />
+    </form>
+
+        <form onsubmit="return filter()" style="margin: 5px;">
+      <div style= "display: inline-flex;">
+        <div class="form-group">
+            <label for="minStock">Stock Mínimo</label>
+            <input style="width: 40vh" name="minStock" type="text" placeholder="Ingresar Nombre" />
+        </div>
+                <div class="form-group">
+            <label for="maxStock">Stock Máximo</label>
+            <input style="width: 40vh" name="maxStock" type="text" placeholder="Ingresar Nombre" />
+        </div>
+      </div>
+        <input type="submit" class="btn btn-primary" value="Filtrar" />
+    </form>
+
     {{> list }}
     {{> chat }}
     <script

@@ -1,8 +1,19 @@
-import ProductFactory from "../DAO/ProductFactory";
-import ProductInterface from "../DAO/ProductDAOInterface";
+import DAOFactory from "../DAO/DAOFactory";
+import DAOInterface from "../DAO/DAOInterface";
 import persistanceType from "../DAO/config";
 
-const messageDAO: ProductInterface = new ProductFactory().getMessageDAO(persistanceType);
+const table = "products";
+
+export type ConditionsType = {
+  name?: string;
+  code?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minStock?: number;
+  maxStock?: number;
+};
+
+const DAO: DAOInterface = new DAOFactory().getDAO(persistanceType);
 
 const getLastId = () => {
   return 0;
@@ -38,7 +49,7 @@ export default class Product {
 
   static getProducts = async function (): Promise<any[]> {
     try {
-      const response = await messageDAO.getAllProducts();
+      const response = await DAO.getAll(table);
       return response;
     } catch (error: Error | unknown) {
       console.log(error);
@@ -50,9 +61,22 @@ export default class Product {
     return (++lastId).toString();
   }
 
+  static getProductsIf = async function (
+    conditions: ConditionsType
+  ): Promise<any[]> {
+    if (!Object.keys(conditions)) return await Product.getProducts();
+    try {
+      const response = await DAO.getAllWithConditions(table, conditions);
+      return response;
+    } catch (error: Error | unknown) {
+      console.log(error);
+    }
+    return [];
+  };
+
   static async getProduct(id: string): Promise<any | undefined> {
     try {
-      const response = await messageDAO.getProductFromDB(id);
+      const response = await DAO.getOne(table, id);
       return response;
     } catch (error) {
       console.log(error);
@@ -77,12 +101,13 @@ export default class Product {
       stock
     );
     try {
-      await messageDAO.addProductToDB(newProduct);
+      await DAO.addElement(table, newProduct);
     } catch (error: Error | unknown) {
       console.log(error);
     }
     return newProduct;
   }
+
   static async update(
     id: string,
     name?: string,
@@ -94,6 +119,7 @@ export default class Product {
   ) {
     const foundProducts = await this.getProduct(id);
     const productToUpdate = foundProducts ? foundProducts[0] : undefined;
+    console.log("busque un producto");
 
     if (!productToUpdate) return;
     if (name) productToUpdate.name = name;
@@ -103,7 +129,9 @@ export default class Product {
     if (price) productToUpdate.price = price;
     if (stock) productToUpdate.stock = stock;
     try {
-      await messageDAO.updateProductFromDB(id, productToUpdate);
+      console.log("me tengoq ue meter a actualizar");
+
+      await DAO.updateElement(table, id, productToUpdate);
     } catch (error: Error | unknown) {
       console.log(error);
     }
@@ -113,7 +141,7 @@ export default class Product {
   static async delete(id: string): Promise<object | undefined> {
     const product = await this.getProduct(id);
     try {
-      await messageDAO.deleteProductFromDB(id);
+      await DAO.deleteElement(table, id);
       return product;
     } catch (error: Error | unknown) {
       console.log(error);

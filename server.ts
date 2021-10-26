@@ -6,20 +6,28 @@ import { Server as IOServer } from "socket.io";
 // Model
 import Product from "./src/model/Product";
 import Message from "./src/model/Message";
-// import Cart from "./src/model/Cart";
+import Cart from "./src/model/Cart";
 
 // Libraries
 import handlebars from "express-handlebars";
 import moment from "moment";
 
+// Database
+import { initializeMariaDB } from "./src/DAO/MySQL";
+import { initializeSQLite } from "./src/DAO/SQLite";
+import persistanceType from "./src/DAO/config";
+
 const app = express();
 const httpServer: HttpServer = new HttpServer(app);
 const io: IOServer = new IOServer(httpServer);
 
+if (persistanceType + 1 === 3) initializeMariaDB(); // the add is to prevent a ts error
+if (persistanceType + 1 === 5) initializeSQLite(); // the add is to prevent a ts error
+
 const PORT: number = Number(process.env.PORT) || 8080;
 
 const productsRouter: Router = Router();
-// const cartRouter: Router = Router();
+const cartRouter: Router = Router();
 
 const administrator: boolean = true;
 // const cart: Cart = new Cart();
@@ -31,15 +39,15 @@ httpServer.listen(PORT, () => {
 httpServer.on("error", (error) => console.log("Error en servidor", error));
 
 io.on("connection", (socket) => {
-  socket.on("update", (data) => {
+  socket.on("update", async (data) => {
     const { name, description, code, thumbnail, price, stock } = data;
-    const newProduct: any = Product.save(
+    const newProduct: any = await Product.save(
       name,
-      description,
-      code,
+      description ? description : "",
+      code ? code : "",
       thumbnail,
       price,
-      stock
+      stock ? stock : 0
     );
 
     io.sockets.emit("refresh", newProduct);
@@ -72,21 +80,36 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use("/products", productsRouter);
-// app.use("/cart", cartRouter);
+app.use("/cart", cartRouter);
 
 app.get("/products/view", async (req: Request, res: Response) => {
   res.render("partials/list", { data: await Product.getProducts() });
 });
 
 app.get("/", async (req: Request, res: Response) => {
+  const productsData: any[] = [];
+  if (Object.keys(req.query).length) {
+    const response = await Product.getProductsIf(req.query);
+    productsData.push(...response);
+  } else {
+    const response = await Product.getProducts();
+    productsData.push(...response);
+  }
   res.render("layouts/index", {
-    data: await Product.getProducts(),
+    data: productsData,
     messages: await Message.getAllMessages(),
   });
 });
 
 productsRouter.get("/list", async (req: Request, res: Response) => {
-  res.json(await Product.getProducts());
+  let fullResponse: object[] = [];
+  const { name, code, minPrice, maxPrice, minStock, maxStock } = req.query;
+  if (name || code || minPrice || maxPrice || minStock || maxStock) {
+    fullResponse = await Product.getProductsIf(req.query);
+  } else {
+    fullResponse = await Product.getProducts();
+  }
+  res.json(fullResponse);
 });
 
 productsRouter.get("/list/:id", async (req: Request, res: Response) => {
@@ -166,28 +189,28 @@ productsRouter.delete("/delete/:id", async (req: Request, res: Response) => {
   res.json(result);
 });
 
-// cartRouter.get("/list", async (req: Request, res: Response) => {
-//   res.json(cart.getCart());
-// });
+cartRouter.get("/list", async (req: Request, res: Response) => {
+  res.json(await Cart.getCart());
+});
 
-// cartRouter.get("/list/:id", async (req: Request, res: Response) => {
-//   res.json(cart.getCart()); // for this deliverable I'm only using one default cart
-// });
+cartRouter.get("/list/:id", async (req: Request, res: Response) => {
+  res.json(await Cart.getCart()); // for this deliverable I'm only using one default cart
+});
 
-// cartRouter.post("/add/:id_product", async (req: Request, res: Response) => {
-//   const product: object | undefined = await Product.getProduct(
-//     req.params?.id_product
-//   );
-//   if (product) {
-//     await cart.addToCart(product as Product);
-//     res.json({ success: "Succesfully added to cart" });
-//   } else {
-//     res.json({ error: "The provided id does not exist." });
-//   }
-// });
+cartRouter.post("/add/:id_product", async (req: Request, res: Response) => {
+  const product: object | undefined = await Product.getProduct(
+    req.params?.id_product
+  );
+  if (product) {
+    await Cart.addToCart(product as Product);
+    res.json({ success: "Succesfully added to cart" });
+  } else {
+    res.json({ error: "The provided id does not exist." });
+  }
+});
 
-// cartRouter.delete("/delete/:id", async (req: Request, res: Response) => {
-//   const remove = await cart.removeFromCart(req.params?.id?.toString());
-//   if (remove) res.json({ success: "Succesfully removed from cart" });
-//   else res.json({ success: "The provided id does not exist in this cart." });
-// });
+cartRouter.delete("/delete/:id", async (req: Request, res: Response) => {
+  const remove = await Cart.removeFromCart(req.params?.id?.toString());
+  if (remove) res.json({ success: "Succesfully removed from cart" });
+  else res.json({ success: "The provided id does not exist in this cart." });
+});

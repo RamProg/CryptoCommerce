@@ -9,7 +9,7 @@ const dbOptions = {
 
 export async function connect() {
   try {
-    console.log("Conectando a la base de datos...");
+    console.log("Conectando a la base de datos MongoLocal...");
     await mongoose.connect(URI, dbOptions);
     console.log("conecté");
   } catch (error) {

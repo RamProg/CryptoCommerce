@@ -1,8 +1,10 @@
-import MessageFactory from "../DAO/MessageFactory";
-import MessageInterface from "../DAO/MessageDAOInterface";
+import DAOFactory from "../DAO/DAOFactory";
+import DAOInterface from "../DAO/DAOInterface";
 import persistanceType from "../DAO/config";
 
-const messageDAO: MessageInterface = new MessageFactory().getMessageDAO(persistanceType);
+const table = "messages";
+
+const DAO: DAOInterface = new DAOFactory().getDAO(persistanceType);
 export default class Message {
   mail: string;
   time: string;
@@ -15,7 +17,7 @@ export default class Message {
 
   static getAllMessages = async function (): Promise<object[]> {
     try {
-      const response = await messageDAO.getAllMessagesFromDB();
+      const response = await DAO.getAll(table);
       return response;
     } catch (error: Error | unknown) {
       console.log(error);
@@ -30,7 +32,7 @@ export default class Message {
   ): Promise<void> {
     const newMessage: Message = new Message(mail, time, content);
     try {
-      messageDAO.addMessageToDB(newMessage);
+      DAO.addElement(table, newMessage);
     } catch (error: Error | unknown) {
       console.log(error);
     }
