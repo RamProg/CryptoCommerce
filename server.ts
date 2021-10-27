@@ -17,6 +17,9 @@ import { initializeMariaDB } from "./src/DAO/MySQL";
 import { initializeSQLite } from "./src/DAO/SQLite";
 import persistanceType from "./src/DAO/config";
 
+// Functions
+import getFakeData from "./src/utils/Faker";
+
 const app = express();
 const httpServer: HttpServer = new HttpServer(app);
 const io: IOServer = new IOServer(httpServer);
@@ -110,6 +113,20 @@ productsRouter.get("/list", async (req: Request, res: Response) => {
     fullResponse = await Product.getProducts();
   }
   res.json(fullResponse);
+});
+
+productsRouter.get("/test-view", async (req: Request, res: Response) => {
+  const DEFAULT_QTY: number = 10;
+  let qty = DEFAULT_QTY;
+  if (req.query.qty) {
+    let temp: number = Number(req.query.qty);
+    if (!isNaN(qty)) qty = temp;
+  }
+  if (qty === 0) res.json({ error: "There are no available products." });
+  else {
+    const response: object[] = getFakeData(qty);
+    res.json(response);
+  }
 });
 
 productsRouter.get("/list/:id", async (req: Request, res: Response) => {
