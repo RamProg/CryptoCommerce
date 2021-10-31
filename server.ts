@@ -19,6 +19,7 @@ import persistanceType from "./src/DAO/config";
 
 // Functions
 import getFakeData from "./src/utils/Faker";
+import { denormalize, schema } from "normalizr";
 
 const app = express();
 const httpServer: HttpServer = new HttpServer(app);
@@ -34,6 +35,15 @@ const cartRouter: Router = Router();
 
 const administrator: boolean = true;
 // const cart: Cart = new Cart();
+
+const authorSchema = new schema.Entity("author", {}, { idAttribute: "email" });
+
+const messageSchema = new schema.Entity("message");
+
+const chatSchema = new schema.Entity("chat", {
+  author: authorSchema,
+  message: messageSchema,
+});
 
 httpServer.listen(PORT, () => {
   console.log("Server listening on port", PORT);
@@ -55,16 +65,28 @@ io.on("connection", (socket) => {
 
     io.sockets.emit("refresh", newProduct);
   });
-  socket.on("newMessage", (data) => {
+  socket.on("newMessage", async (data) => {
+    console.log("evento emitido", data);
+
     const time = moment().format("DD/MM/YYYY HH:MM:SS").toString();
     data.time = `[${time}]: `;
-    Message.addMessage(data.mail, data.time, data.content);
+    await Message.addMessage(
+      data.mail,
+      data.name,
+      data.lastname,
+      data.age,
+      data.alias,
+      data.avatar,
+      data.time,
+      data.content
+    );
     io.sockets.emit("newChat", data);
   });
 });
 
 const hbsOptions = {
   extname: ".hbs",
+  helpers: require("./src/helpers/handlebars").helpers,
   defaultLayout: "index.hbs",
   layoutsDir: __dirname + "/views/layouts",
   partialsDir: __dirname + "/views/partials",
@@ -98,9 +120,17 @@ app.get("/", async (req: Request, res: Response) => {
     const response = await Product.getProducts();
     productsData.push(...response);
   }
+  const normal: any = await Message.getAllMessages();
+  const messages = denormalize(
+    normal.result,
+    chatSchema,
+    normal.entities
+  );
+  console.log("denormalized", messages);
+
   res.render("layouts/index", {
     data: productsData,
-    messages: await Message.getAllMessages(),
+    messages,
   });
 });
 

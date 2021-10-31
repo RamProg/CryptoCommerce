@@ -33,8 +33,23 @@ function addProduct() {
 }
 
 function addChat() {
+  console.log("voy a hacer un addchat", document?.getElementsByName("mail")[0]?.value);
   const mail = document?.getElementsByName("mail")[0]?.value;
+  const name = document?.getElementsByName("name-user")[0]?.value;
+  const lastname = document?.getElementsByName("lastname")[0]?.value;
+  const age = document?.getElementsByName("age")[0]?.value;
+  const alias = document?.getElementsByName("alias")[0]?.value;
+  const avatar = document?.getElementsByName("avatar")[0]?.value;
   const content = document?.getElementsByName("content")[0]?.value;
-  socket.emit("newMessage", { mail, content });
+  console.log("voy a emitir el evento");
+  socket.emit("newMessage", {
+    mail,
+    name,
+    lastname,
+    age,
+    alias,
+    avatar,
+    content,
+  });
   return false;
 }

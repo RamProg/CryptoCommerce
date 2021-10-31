@@ -1,4 +1,4 @@
-export default 0;
+export default 6;
 
 // 0 Memory
 // 1 FS

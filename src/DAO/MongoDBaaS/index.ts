@@ -23,6 +23,17 @@ const CartSchema: Schema = new Schema({
   ],
 });
 
+const MessageSchema: Schema = new Schema({
+  mail: { type: String, require: true, max: 40 },
+  name: { type: String, require: true, max: 40 },
+  lastname: { type: String, require: true, max: 40 },
+  age: { type: Number, require: true },
+  alias: { type: String, require: true, max: 40 },
+  avatar: { type: String, require: true, max: 40 },
+  message: { type: String, require: true, max: 256 },
+  timestamp: Date,
+});
+
 type ObjectWithId = {
   id: string;
 };
@@ -30,6 +41,7 @@ type ObjectWithId = {
 export default class DAOMongoDBaaS implements DAOInterface {
   products = model("products", ProductSchema);
   carts = model("carts", CartSchema);
+  messages = model("messages", MessageSchema);
 
   getAll = async (table: string) => {
     try {
@@ -88,6 +100,8 @@ export default class DAOMongoDBaaS implements DAOInterface {
 
   addElement = async (table: string, element: object) => {
     try {
+      console.log("element ", element);
+
       await connect();
       const e = new (eval("this." + table))(element);
       await e.save();
