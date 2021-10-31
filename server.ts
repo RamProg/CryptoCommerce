@@ -11,6 +11,7 @@ import Cart from "./src/model/Cart";
 // Libraries
 import handlebars from "express-handlebars";
 import moment from "moment";
+import session from "express-session";
 
 // Database
 import { initializeMariaDB } from "./src/DAO/MySQL";
@@ -61,13 +62,15 @@ io.on("connection", (socket) => {
     Message.addMessage(data.mail, data.time, data.content);
     io.sockets.emit("newChat", data);
   });
+  socket.on("login", (name) => {});
 });
 
+// @ts-ignore
 const hbsOptions = {
   extname: ".hbs",
-  defaultLayout: "index.hbs",
-  layoutsDir: __dirname + "/views/layouts",
-  partialsDir: __dirname + "/views/partials",
+  defaultLayout: "index",
+  layoutsDir: __dirname + "/views/layouts/",
+  partialsDir: __dirname + "/views/partials/",
   runtimeOptions: {
     allowProtoPropertiesByDefault: true,
     allowProtoMethodsByDefault: true,
@@ -85,23 +88,45 @@ app.use(express.static("public"));
 app.use("/products", productsRouter);
 app.use("/cart", cartRouter);
 
+app.use(
+  session({
+    secret: "secreto",
+    resave: true,
+    saveUninitialized: true,
+    cookie: {
+      maxAge: 60 * 1000,
+    },
+  })
+);
+
 app.get("/products/view", async (req: Request, res: Response) => {
   res.render("partials/list", { data: await Product.getProducts() });
 });
 
-app.get("/", async (req: Request, res: Response) => {
-  const productsData: any[] = [];
-  if (Object.keys(req.query).length) {
-    const response = await Product.getProductsIf(req.query);
-    productsData.push(...response);
-  } else {
-    const response = await Product.getProducts();
-    productsData.push(...response);
+app.get("/logout", async (req: any, res: Response) => {
+  req.session.name = undefined;
+  res.render("./layouts/bye", { layout: "bye" });
+});
+
+app.get("/", async (req: any, res: Response) => {
+  if (!req.query.name && !req.session?.name)
+    res.render("layouts/login", { layout: "login" });
+  else {
+    if (!req.session?.name) req.session.name = req.query.name;
+    const productsData: any[] = [];
+    if (Object.keys(req.query).length) {
+      const response = await Product.getProductsIf(req.query);
+      productsData.push(...response);
+    } else {
+      const response = await Product.getProducts();
+      productsData.push(...response);
+    }
+    res.render("layouts/index", {
+      data: productsData,
+      messages: await Message.getAllMessages(),
+      username: req.session.name,
+    });
   }
-  res.render("layouts/index", {
-    data: productsData,
-    messages: await Message.getAllMessages(),
-  });
 });
 
 productsRouter.get("/list", async (req: Request, res: Response) => {

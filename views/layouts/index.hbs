@@ -1,105 +1,105 @@
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CryptoCommerce</title>
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
-      crossorigin="anonymous"
-    />
-    <link rel="stylesheet" type="text/css" href="./style.css" />
-    <script src="./socket.io/socket.io.js"></script>
-    <script src="./index.js"></script>
-  </head>
-  <body>
-        <h1>Ingreso de Productos</h1>
 
-    <form onsubmit="return addProduct()" style="margin: 20px;">
-        <legend>Producto</legend>
-      <div style= "display: inline-flex;">
-        <div class="form-group">
-            <label for="title">Título</label>
-            <input style="width: 40vh" name="title" type="text" placeholder="Ingresar título" />
-        </div>
-        <div class="form-group">
-            <label for="price">Precio</label>
-            <input style="width: 20vh" name="price" type="number" placeholder="Ingresar precio" />
-        </div>
-        <div class="form-group">
-            <label for="thumbnail">Thumbnail</label>
-            <input style="width: 40vh" name="thumbnail" type="text" placeholder="Ingresar Thumbnail" />
-        </div></div>
-        <input type="submit" class="btn btn-primary" value="Agregar Producto" />
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CryptoCommerce</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
+  <link rel="stylesheet" type="text/css" href="./style.css" />
+  <script src="./socket.io/socket.io.js"></script>
+  <script src="./index.js"></script>
+</head>
+
+<body>
+  <div style="display: inline-flex;">
+    <h1>Bienvenido {{username}}</h1>
+    <form onsubmit="window.location.href = './logout'; return false;" style="margin: 20px;">
+      <input type="submit" class="btn btn-primary" value="Logout" />
     </form>
+  </div>
+  <h1>Ingreso de Productos</h1>
 
-    <form onsubmit="return filter()" style="margin: 5px;">
-        <legend>Filter</legend>
-      <div style= "display: inline-flex;">
-        <div class="form-group">
-            <label for="name">Título</label>
-            <input style="width: 40vh" name="name" type="text" placeholder="Ingresar Nombre" />
-        </div>
+  <form onsubmit="return addProduct()" style="margin: 20px;">
+    <legend>Producto</legend>
+    <div style="display: inline-flex;">
+      <div class="form-group">
+        <label for="title">Título</label>
+        <input style="width: 40vh" name="title" type="text" placeholder="Ingresar título" />
       </div>
-        <input type="submit" class="btn btn-primary" value="Filtrar" />
-    </form>
-
-    <form onsubmit="return filter()" style="margin: 5px;">
-      <div style= "display: inline-flex;">
-        <div class="form-group">
-            <label for="code">Código</label>
-            <input style="width: 40vh" name="code" type="text" placeholder="Ingresar Código" />
-        </div>
+      <div class="form-group">
+        <label for="price">Precio</label>
+        <input style="width: 20vh" name="price" type="number" placeholder="Ingresar precio" />
       </div>
-        <input type="submit" class="btn btn-primary" value="Filtrar" />
-    </form>
-
-        <form onsubmit="return filter()" style="margin: 5px;">
-      <div style= "display: inline-flex;">
-        <div class="form-group">
-            <label for="minPrice">Precio Mínimo</label>
-            <input style="width: 40vh" name="minPrice" type="text" placeholder="Ingresar Nombre" />
-        </div>
-        <div class="form-group">
-            <label for="maxPrice">Precio Máximo</label>
-            <input style="width: 40vh" name="maxPrice" type="text" placeholder="Ingresar Nombre" />
-        </div>
+      <div class="form-group">
+        <label for="thumbnail">Thumbnail</label>
+        <input style="width: 40vh" name="thumbnail" type="text" placeholder="Ingresar Thumbnail" />
       </div>
-        <input type="submit" class="btn btn-primary" value="Filtrar" />
-    </form>
+    </div>
+    <input type="submit" class="btn btn-primary" value="Agregar Producto" />
+  </form>
 
-        <form onsubmit="return filter()" style="margin: 5px;">
-      <div style= "display: inline-flex;">
-        <div class="form-group">
-            <label for="minStock">Stock Mínimo</label>
-            <input style="width: 40vh" name="minStock" type="text" placeholder="Ingresar Nombre" />
-        </div>
-                <div class="form-group">
-            <label for="maxStock">Stock Máximo</label>
-            <input style="width: 40vh" name="maxStock" type="text" placeholder="Ingresar Nombre" />
-        </div>
+  <form onsubmit="return filter()" style="margin: 5px;">
+    <legend>Filter</legend>
+    <div style="display: inline-flex;">
+      <div class="form-group">
+        <label for="name">Título</label>
+        <input style="width: 40vh" name="name" type="text" placeholder="Ingresar Nombre" />
       </div>
-        <input type="submit" class="btn btn-primary" value="Filtrar" />
-    </form>
+    </div>
+    <input type="submit" class="btn btn-primary" value="Filtrar" />
+  </form>
 
-    {{> list }}
-    {{> chat }}
-    <script
-      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-      crossorigin="anonymous"
-    ></script>
-  </body>
+  <form onsubmit="return filter()" style="margin: 5px;">
+    <div style="display: inline-flex;">
+      <div class="form-group">
+        <label for="code">Código</label>
+        <input style="width: 40vh" name="code" type="text" placeholder="Ingresar Código" />
+      </div>
+    </div>
+    <input type="submit" class="btn btn-primary" value="Filtrar" />
+  </form>
+
+  <form onsubmit="return filter()" style="margin: 5px;">
+    <div style="display: inline-flex;">
+      <div class="form-group">
+        <label for="minPrice">Precio Mínimo</label>
+        <input style="width: 40vh" name="minPrice" type="text" placeholder="Ingresar Nombre" />
+      </div>
+      <div class="form-group">
+        <label for="maxPrice">Precio Máximo</label>
+        <input style="width: 40vh" name="maxPrice" type="text" placeholder="Ingresar Nombre" />
+      </div>
+    </div>
+    <input type="submit" class="btn btn-primary" value="Filtrar" />
+  </form>
+
+  <form onsubmit="return filter()" style="margin: 5px;">
+    <div style="display: inline-flex;">
+      <div class="form-group">
+        <label for="minStock">Stock Mínimo</label>
+        <input style="width: 40vh" name="minStock" type="text" placeholder="Ingresar Nombre" />
+      </div>
+      <div class="form-group">
+        <label for="maxStock">Stock Máximo</label>
+        <input style="width: 40vh" name="maxStock" type="text" placeholder="Ingresar Nombre" />
+      </div>
+    </div>
+    <input type="submit" class="btn btn-primary" value="Filtrar" />
+  </form>
+
+  {{> list }}
+  {{> chat }}
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
+</body>
+
 </html>

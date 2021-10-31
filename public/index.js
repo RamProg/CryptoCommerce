@@ -38,3 +38,9 @@ function addChat() {
   socket.emit("newMessage", { mail, content });
   return false;
 }
+
+function login() {
+  const name = document?.getElementsByName("name")[0]?.value;
+  socket.emit("login", name);
+  return false;
+}
