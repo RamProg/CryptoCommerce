@@ -30,8 +30,8 @@ const MessageSchema: Schema = new Schema({
   age: { type: Number, require: true },
   alias: { type: String, require: true, max: 40 },
   avatar: { type: String, require: true, max: 40 },
-  message: { type: String, require: true, max: 256 },
-  timestamp: Date,
+  time: { type: String },
+  content: { type: String, require: true, max: 256 },
 });
 
 type ObjectWithId = {

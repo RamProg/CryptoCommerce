@@ -11,6 +11,7 @@ import Cart from "./src/model/Cart";
 // Libraries
 import handlebars from "express-handlebars";
 import moment from "moment";
+import { normalize, schema } from "normalizr";
 
 // Database
 import { initializeMariaDB } from "./src/DAO/MySQL";
@@ -19,7 +20,6 @@ import persistanceType from "./src/DAO/config";
 
 // Functions
 import getFakeData from "./src/utils/Faker";
-import { denormalize, schema } from "normalizr";
 
 const app = express();
 const httpServer: HttpServer = new HttpServer(app);
@@ -80,7 +80,9 @@ io.on("connection", (socket) => {
       data.time,
       data.content
     );
-    io.sockets.emit("newChat", data);
+    const normalized = normalize(data, chatSchema);
+
+    io.sockets.emit("newChat", data, chatSchema);
   });
 });
 
@@ -120,13 +122,7 @@ app.get("/", async (req: Request, res: Response) => {
     const response = await Product.getProducts();
     productsData.push(...response);
   }
-  const normal: any = await Message.getAllMessages();
-  const messages = denormalize(
-    normal.result,
-    chatSchema,
-    normal.entities
-  );
-  console.log("denormalized", messages);
+  const messages: any = await Message.getAllMessages();
 
   res.render("layouts/index", {
     data: productsData,

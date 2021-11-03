@@ -11,7 +11,13 @@ socket.on("refresh", (data) => {
   tbody.innerHTML += template;
 });
 
-socket.on("newChat", (data) => {
+socket.on("newChat", (data, chatSchema) => {
+  // const denormalized = denormalize(
+  //   data.result,
+  //   chatSchema,
+  //   data.entities
+  // );
+
   const template = `<tr>
     <td style="color: blue; font-weight: bold;">${data.mail}</td>
     <td style="color: brown;">${data.time}</td>
@@ -33,7 +39,10 @@ function addProduct() {
 }
 
 function addChat() {
-  console.log("voy a hacer un addchat", document?.getElementsByName("mail")[0]?.value);
+  console.log(
+    "voy a hacer un addchat",
+    document?.getElementsByName("mail")[0]?.value
+  );
   const mail = document?.getElementsByName("mail")[0]?.value;
   const name = document?.getElementsByName("name-user")[0]?.value;
   const lastname = document?.getElementsByName("lastname")[0]?.value;

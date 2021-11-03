@@ -3,11 +3,11 @@ import DAOInterface from "../DAO/DAOInterface";
 import persistanceType from "../DAO/config";
 import { normalize, denormalize, schema } from "normalizr";
 
-const authorSchema = new schema.Entity("author", {}, { idAttribute: "email" });
+export const authorSchema = new schema.Entity("author", {}, { idAttribute: "email" });
 
-const messageSchema = new schema.Entity("message");
+export const messageSchema = new schema.Entity("message");
 
-const chatSchema = new schema.Entity("chat", {
+export const chatSchema = new schema.Entity("chat", {
   author: authorSchema,
   message: messageSchema,
 });
@@ -46,28 +46,18 @@ export default class Message {
 
   static getAllMessages = async function (): Promise<object> {
     try {
-      const response = await DAO.getAll(table);
-      console.log("response", JSON.stringify(response));
+      const response = { id: "1", ...(await DAO.getAll(table)) };
 
       const normalized = normalize(response, chatSchema);
-      console.log(
-        "antes ",
-        JSON.stringify(response).length,
-        "despues ",
-        JSON.stringify(normalized).length
-      );
 
       const denormalized = denormalize(
         normalized.result,
         chatSchema,
         normalized.entities
       );
+      delete denormalized.id;
 
-      console.log("normalized", JSON.stringify(normalized));
-      console.log("denormalized", JSON.stringify(denormalized));
-
-
-      return normalized;
+      return denormalized;
     } catch (error: Error | unknown) {
       console.log(error);
     }
