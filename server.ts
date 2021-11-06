@@ -11,7 +11,8 @@ import Cart from "./src/model/Cart";
 // Libraries
 import handlebars from "express-handlebars";
 import moment from "moment";
-import session from "express-session";
+import session, { MongoClientOptions } from "express-session";
+import MongoStore from "connect-mongo";
 
 // Database
 import { initializeMariaDB } from "./src/DAO/MySQL";
@@ -20,6 +21,11 @@ import persistanceType from "./src/DAO/config";
 
 // Functions
 import getFakeData from "./src/utils/Faker";
+
+const advancedOptions: MongoClientOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+};
 
 const app = express();
 const httpServer: HttpServer = new HttpServer(app);
@@ -90,11 +96,16 @@ app.use("/cart", cartRouter);
 
 app.use(
   session({
+    store: MongoStore.create({
+      mongoUrl:
+        "mongodb+srv://rama:rama@cluster0.do4gw.mongodb.net/ecommerce?retryWrites=true&w=majority",
+      mongoOptions: advancedOptions,
+    }),
     secret: "secreto",
     resave: true,
     saveUninitialized: true,
     cookie: {
-      maxAge: 60 * 1000,
+      maxAge: 10 * 60 * 1000,
     },
   })
 );
