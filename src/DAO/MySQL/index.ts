@@ -101,6 +101,10 @@ export default class DAOMySQL implements DAOInterface {
     return;
   };
 
+  getOneByUsername = async (table: string, username: string) => {
+    return [];
+  };
+
   addElement = async (table: string, product: object) => {
     try {
       const response = await knex(table).insert(product);

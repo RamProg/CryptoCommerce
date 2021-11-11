@@ -7,6 +7,7 @@ export default interface DAOInterface {
     conditions: ConditionsType
   ) => Promise<object[]>;
   getOne: (table: string, id: string) => Promise<object[]>;
+  getOneByUsername: (table: string, id: string) => Promise<object[]>;
   addElement: (table: string, element: object) => Promise<object>;
   deleteElement: (table: string, id: string) => Promise<object>;
   updateElement: (

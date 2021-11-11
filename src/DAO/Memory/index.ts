@@ -39,6 +39,10 @@ export default class Memory implements DAOInterface {
     return [eval(table).find((e: { id: string }) => e.id === id)];
   };
 
+  getOneByUsername = async (table: string, username: string) => {
+    return [];
+  };
+
   addElement = async (table: string, product: object) => {
     eval(table).push(product);
     return product;

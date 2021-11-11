@@ -86,6 +86,21 @@ export default class ProductDAOMongoLocal implements DAOInterface {
     }
   };
 
+  getOneByUsername = async (table: string, username: string) => {
+    try {
+      await connect();
+      const response = await eval("this." + table).find({ username });
+      if (response.length) {
+        await close();
+        return response;
+      }
+    } catch (error) {
+      console.log(error);
+      await close();
+      return undefined;
+    }
+  };
+
   addElement = async (table: string, element: object) => {
     try {
       await connect();

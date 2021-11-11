@@ -13,6 +13,8 @@ import handlebars from "express-handlebars";
 import moment from "moment";
 import session, { MongoClientOptions } from "express-session";
 import MongoStore from "connect-mongo";
+import passport from "passport";
+import { Strategy as LocalStrategy} from 'passport-local';
 
 // Database
 import { initializeMariaDB } from "./src/DAO/MySQL";
@@ -21,6 +23,7 @@ import persistanceType from "./src/DAO/config";
 
 // Functions
 import getFakeData from "./src/utils/Faker";
+import User from "./src/model/User";
 
 const advancedOptions: MongoClientOptions = {
   useNewUrlParser: true,
@@ -103,15 +106,78 @@ app.use(
     }),
     secret: "secreto",
     resave: true,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
       maxAge: 10 * 60 * 1000,
     },
   })
 );
 
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(
+  "signup",
+  new LocalStrategy(
+    {
+      passReqToCallback: true,
+    },
+    async function (req, username, password, done) {
+      console.log("entre al sign up");
+
+      const user = await User.findOne(username);
+      if (user) {
+        return done(
+          null,
+          false,
+          console.log((user as User).username ?? "", "Usuario ya existe")
+        );
+      } else {
+        console.log("usuario nuevo");
+        const newUser = new User(username, password);
+        newUser.save();
+
+        return done(null, newUser);
+      }
+    }
+  )
+);
+
+passport.use(
+  "login",
+  new LocalStrategy(
+    {
+      passReqToCallback: true,
+    },
+    async function (req, username, password, done) {
+      let user = await User.findOne(username);
+      if (!user) {
+        return done(null, false, console.log(username, "usuario no existe"));
+      } else if (User.validatePassword(user, password)) return done(null, user);
+      else return done(null, false, console.log(username, "password errónea"));
+    }
+  )
+);
+
+passport.serializeUser((user, done) => {
+  console.log("hago serialize");
+  done(null, user);
+});
+
+passport.deserializeUser((id, done) => {
+  console.log("hago deserialize");
+
+  let user = User.getUserById(id);
+  done(null, user);
+});
+
 app.get("/products/view", async (req: Request, res: Response) => {
   res.render("partials/list", { data: await Product.getProducts() });
+});
+
+app.get("/error", async (req: Request, res: Response) => {
+  console.log("estoy en la ruta de errores");
+  res.render("./layouts/error", { layout: "error", errorType: "USER" });
 });
 
 app.get("/logout", async (req: any, res: Response) => {
@@ -119,9 +185,34 @@ app.get("/logout", async (req: any, res: Response) => {
   res.render("./layouts/bye", { layout: "bye" });
 });
 
+app.get("/login", async (req: Request, res: Response) => {
+  res.render("layouts/login", { layout: "login" });
+});
+
+app.get("/signup", async (req: Request, res: Response) => {
+  res.render("layouts/signup", { layout: "signup" });
+});
+
+app.post(
+  "/signup",
+  passport.authenticate("signup", { failureRedirect: "/error" }),
+  (req: Request, res: Response) => {
+    console.log("anduvo algo");
+
+    res.redirect("/");
+  }
+);
+
+app.post(
+  "/login",
+  passport.authenticate("login", { failureRedirect: "/error" }),
+  (req: Request, res: Response) => {
+    res.redirect("/")
+  }
+);
+
 app.get("/", async (req: any, res: Response) => {
-  if (!req.query.name && !req.session?.name)
-    res.render("layouts/login", { layout: "login" });
+  if (!req.query.name && !req.session?.name) res.redirect("/login");
   else {
     if (!req.session?.name) req.session.name = req.query.name;
     const productsData: any[] = [];

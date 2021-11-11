@@ -63,6 +63,10 @@ export default class Memory implements DAOInterface {
     return result.length ? result[0] : [];
   };
 
+  getOneByUsername = async (table: string, username: string) => {
+    return [];
+  };
+  
   addElement = async (table: string, element: object) => {
     delete element["id"];
     const data = { ...element };

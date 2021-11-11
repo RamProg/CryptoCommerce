@@ -23,13 +23,15 @@ const CartSchema: Schema = new Schema({
   ],
 });
 
-type ObjectWithId = {
-  id: string;
-};
-
+const UserSchema: Schema = new Schema({
+  id: { type: String, require: true, max: 50 },
+  username: { type: String, require: true, max: 50 },
+  password: { type: String, require: true, max: 140 },
+});
 export default class DAOMongoDBaaS implements DAOInterface {
   products = model("products", ProductSchema);
   carts = model("carts", CartSchema);
+  users = model("users", UserSchema);
 
   getAll = async (table: string) => {
     try {
@@ -75,6 +77,21 @@ export default class DAOMongoDBaaS implements DAOInterface {
     try {
       await connect();
       const response = await eval("this." + table).find({ _id });
+      if (response.length) {
+        await close();
+        return response;
+      }
+    } catch (error) {
+      console.log(error);
+      await close();
+      return undefined;
+    }
+  };
+
+  getOneByUsername = async (table: string, username: string) => {
+    try {
+      await connect();
+      const response = await eval("this." + table).find({ username });
       if (response.length) {
         await close();
         return response;
