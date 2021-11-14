@@ -14,7 +14,7 @@ import moment from "moment";
 import session, { MongoClientOptions } from "express-session";
 import MongoStore from "connect-mongo";
 import passport from "passport";
-import { Strategy as LocalStrategy} from 'passport-local';
+import { Strategy as LocalStrategy } from "passport-local";
 
 // Database
 import { initializeMariaDB } from "./src/DAO/MySQL";
@@ -150,11 +150,18 @@ passport.use(
       passReqToCallback: true,
     },
     async function (req, username, password, done) {
+      console.log("voy a buscar el user");
+
       let user = await User.findOne(username);
+      console.log("encontre el user", user);
+
       if (!user) {
         return done(null, false, console.log(username, "usuario no existe"));
-      } else if (User.validatePassword(user, password)) return done(null, user);
-      else return done(null, false, console.log(username, "password errónea"));
+      } else if (User.validatePassword(user, password)) {
+        req.session.username = username;
+        return done(null, user);
+      } else
+        return done(null, false, console.log(username, "password errónea"));
     }
   )
 );
@@ -164,10 +171,9 @@ passport.serializeUser((user, done) => {
   done(null, user);
 });
 
-passport.deserializeUser((id, done) => {
+passport.deserializeUser(async (id, done) => {
   console.log("hago deserialize");
-
-  let user = User.getUserById(id);
+  let user = await User.getUserById(id);
   done(null, user);
 });
 
@@ -175,13 +181,18 @@ app.get("/products/view", async (req: Request, res: Response) => {
   res.render("partials/list", { data: await Product.getProducts() });
 });
 
-app.get("/error", async (req: Request, res: Response) => {
+app.get("/error-login", async (req: Request, res: Response) => {
   console.log("estoy en la ruta de errores");
-  res.render("./layouts/error", { layout: "error", errorType: "USER" });
+  res.render("./layouts/error", { layout: "error", errorType: "Login" });
+});
+
+app.get("/error-signup", async (req: Request, res: Response) => {
+  console.log("estoy en la ruta de errores");
+  res.render("./layouts/error", { layout: "error", errorType: "Signup" });
 });
 
 app.get("/logout", async (req: any, res: Response) => {
-  req.session.name = undefined;
+  req.session.destroy();
   res.render("./layouts/bye", { layout: "bye" });
 });
 
@@ -195,26 +206,24 @@ app.get("/signup", async (req: Request, res: Response) => {
 
 app.post(
   "/signup",
-  passport.authenticate("signup", { failureRedirect: "/error" }),
+  passport.authenticate("signup", { failureRedirect: "/error-signup" }),
   (req: Request, res: Response) => {
-    console.log("anduvo algo");
-
     res.redirect("/");
   }
 );
 
 app.post(
   "/login",
-  passport.authenticate("login", { failureRedirect: "/error" }),
+  passport.authenticate("login", { failureRedirect: "/error-login" }),
   (req: Request, res: Response) => {
-    res.redirect("/")
+    res.redirect("/");
   }
 );
 
 app.get("/", async (req: any, res: Response) => {
-  if (!req.query.name && !req.session?.name) res.redirect("/login");
+  if (!req.query.username && !req.session?.username) res.redirect("/login");
   else {
-    if (!req.session?.name) req.session.name = req.query.name;
+    if (!req.session?.username) req.session.username = req.query.username;
     const productsData: any[] = [];
     if (Object.keys(req.query).length) {
       const response = await Product.getProductsIf(req.query);
@@ -226,7 +235,7 @@ app.get("/", async (req: any, res: Response) => {
     res.render("layouts/index", {
       data: productsData,
       messages: await Message.getAllMessages(),
-      username: req.session.name,
+      username: req.session.username,
     });
   }
 });

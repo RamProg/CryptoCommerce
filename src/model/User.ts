@@ -29,15 +29,15 @@ export default class User {
     return;
   };
 
-  static getUserById = async (id) => {
+  static getUserById = async (id): Promise<object> => {
     try {
       const response = await DAO.getOne(table, id);
-      if (response) return response[0];
-      else return response;
+      if (response.length) return response[0];
+      else return {};
     } catch (error) {
       console.log(error);
     }
-    return;
+    return {};
   };
 
   save = async () => {
