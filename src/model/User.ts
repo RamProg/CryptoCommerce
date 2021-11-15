@@ -18,7 +18,7 @@ export default class User {
     return user.password === password;
   }
 
-  static findOne = async (username) => {
+  static findOne = async (username): Promise<object> => {
     try {
       const response = await DAO.getOneByUsername(table, username);
       if (response) return response[0];
@@ -26,18 +26,31 @@ export default class User {
     } catch (error) {
       console.log(error);
     }
-    return;
+    return {};
   };
 
   static getUserById = async (id): Promise<object> => {
     try {
       const response = await DAO.getOne(table, id);
-      if (response.length) return response[0];
+      if (response?.length) return response[0];
       else return {};
     } catch (error) {
       console.log(error);
     }
     return {};
+  };
+
+  static findOrCreate = async (id): Promise<object> => {
+    try {
+      const response = await User.getUserById(id);
+      if (!Object.values(response)) {
+        const newUser = new User ("", "");
+        await newUser.save();
+        return newUser;
+      }
+      return response
+    } catch (error) {}
+    return {}
   };
 
   save = async () => {

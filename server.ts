@@ -1,6 +1,6 @@
 // Server
 import express, { Router, Request, Response } from "express";
-import { Server as HttpServer } from "http";
+import https from "https";
 import { Server as IOServer } from "socket.io";
 
 // Model
@@ -15,6 +15,8 @@ import session, { MongoClientOptions } from "express-session";
 import MongoStore from "connect-mongo";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as FacebookStrategy } from "passport-facebook";
+import fs from "fs";
 
 // Database
 import { initializeMariaDB } from "./src/DAO/MySQL";
@@ -30,14 +32,24 @@ const advancedOptions: MongoClientOptions = {
   useUnifiedTopology: true,
 };
 
+const httpsOptions = {
+  key: fs.readFileSync("./src/utils/sslcert/cert.key"),
+  cert: fs.readFileSync("./src/utils/sslcert/cert.pem"),
+};
+const PORT: number = Number(process.env.PORT) || 8443;
+
 const app = express();
-const httpServer: HttpServer = new HttpServer(app);
-const io: IOServer = new IOServer(httpServer);
+
+const server: https.Server = https
+  .createServer(httpsOptions, app)
+  .listen(PORT, () => {
+    console.log("Server corriendo en " + PORT);
+  });
+
+const io: IOServer = new IOServer(server);
 
 if (persistanceType + 1 === 3) initializeMariaDB(); // the add is to prevent a ts error
 if (persistanceType + 1 === 5) initializeSQLite(); // the add is to prevent a ts error
-
-const PORT: number = Number(process.env.PORT) || 8080;
 
 const productsRouter: Router = Router();
 const cartRouter: Router = Router();
@@ -45,11 +57,7 @@ const cartRouter: Router = Router();
 const administrator: boolean = true;
 // const cart: Cart = new Cart();
 
-httpServer.listen(PORT, () => {
-  console.log("Server listening on port", PORT);
-});
-
-httpServer.on("error", (error) => console.log("Error en servidor", error));
+server.on("error", (error) => console.log("Error en servidor", error));
 
 io.on("connection", (socket) => {
   socket.on("update", async (data) => {
@@ -117,51 +125,23 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 passport.use(
-  "signup",
-  new LocalStrategy(
+  new FacebookStrategy(
     {
-      passReqToCallback: true,
+      clientID: "583873459587516",
+      clientSecret: "ff9792055e390e55b6097a2e0d35dcfe",
+      callbackURL: `https://localhost:${PORT}/auth/facebook/callback`,
     },
-    async function (req, username, password, done) {
-      console.log("entre al sign up");
+    async function (accessToken, refreshToken, profile, cb) {
+      console.log("me meti en la 135");
 
-      const user = await User.findOne(username);
-      if (user) {
-        return done(
-          null,
-          false,
-          console.log((user as User).username ?? "", "Usuario ya existe")
-        );
-      } else {
-        console.log("usuario nuevo");
-        const newUser = new User(username, password);
-        newUser.save();
-
-        return done(null, newUser);
-      }
-    }
-  )
-);
-
-passport.use(
-  "login",
-  new LocalStrategy(
-    {
-      passReqToCallback: true,
-    },
-    async function (req, username, password, done) {
-      console.log("voy a buscar el user");
-
-      let user = await User.findOne(username);
-      console.log("encontre el user", user);
+      let user = await User.findOne(profile.id);
+      console.log("user136", user);
 
       if (!user) {
-        return done(null, false, console.log(username, "usuario no existe"));
-      } else if (User.validatePassword(user, password)) {
-        req.session.username = username;
-        return done(null, user);
-      } else
-        return done(null, false, console.log(username, "password errónea"));
+        console.log("profile", profile);
+        console.log("profile.displayName", profile.displayName);
+        cb(null, { username: profile.displayName });
+      } else cb(null, user);
     }
   )
 );
@@ -171,15 +151,25 @@ passport.serializeUser((user, done) => {
   done(null, user);
 });
 
-passport.deserializeUser(async (id, done) => {
+passport.deserializeUser(async (user, done) => {
   console.log("hago deserialize");
-  let user = await User.getUserById(id);
   done(null, user);
 });
 
-app.get("/products/view", async (req: Request, res: Response) => {
-  res.render("partials/list", { data: await Product.getProducts() });
-});
+app.get("/auth/facebook", passport.authenticate("facebook"));
+
+app.get(
+  "/auth/facebook/callback",
+  passport.authenticate("facebook", { failureRedirect: "/error-login" }),
+  function (req: any, res: Response) {
+    console.log("me autentiqué");
+
+    // Successful authentication, redirect home.
+    console.log("req.user", req.user);
+
+    res.redirect("/");
+  }
+);
 
 app.get("/error-login", async (req: Request, res: Response) => {
   console.log("estoy en la ruta de errores");
@@ -205,14 +195,6 @@ app.get("/signup", async (req: Request, res: Response) => {
 });
 
 app.post(
-  "/signup",
-  passport.authenticate("signup", { failureRedirect: "/error-signup" }),
-  (req: Request, res: Response) => {
-    res.redirect("/");
-  }
-);
-
-app.post(
   "/login",
   passport.authenticate("login", { failureRedirect: "/error-login" }),
   (req: Request, res: Response) => {
@@ -220,10 +202,23 @@ app.post(
   }
 );
 
+app.post(
+  "/signup",
+  passport.authenticate("signup", { failureRedirect: "/error-signup" }),
+  (req: Request, res: Response) => {
+    res.redirect("/");
+  }
+);
+
 app.get("/", async (req: any, res: Response) => {
-  if (!req.query.username && !req.session?.username) res.redirect("/login");
+  console.log("get a ./");
+  console.log("req.user", req.user);
+
+  if (!req.isAuthenticated()) res.redirect("/login");
   else {
-    if (!req.session?.username) req.session.username = req.query.username;
+    // if (!req.session?.username) req.session.username = req.query.username;
+    console.log("req.query", req.query);
+    
     const productsData: any[] = [];
     if (Object.keys(req.query).length) {
       const response = await Product.getProductsIf(req.query);
@@ -232,12 +227,18 @@ app.get("/", async (req: any, res: Response) => {
       const response = await Product.getProducts();
       productsData.push(...response);
     }
+    console.log("req.user", req.user);
+
     res.render("layouts/index", {
       data: productsData,
       messages: await Message.getAllMessages(),
-      username: req.session.username,
+      username: req.user.username,
     });
   }
+});
+
+app.get("/products/view", async (req: Request, res: Response) => {
+  res.render("partials/list", { data: await Product.getProducts() });
 });
 
 productsRouter.get("/list", async (req: Request, res: Response) => {

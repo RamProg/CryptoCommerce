@@ -40,7 +40,7 @@ export default class DAOMongoDBaaS implements DAOInterface {
       await close();
       return collection;
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       await close();
       return [];
     }
