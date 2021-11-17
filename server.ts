@@ -14,9 +14,9 @@ import moment from "moment";
 import session, { MongoClientOptions } from "express-session";
 import MongoStore from "connect-mongo";
 import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import fs from "fs";
+import { fork } from "child_process";
 
 // Database
 import { initializeMariaDB } from "./src/DAO/MySQL";
@@ -36,7 +36,7 @@ const httpsOptions = {
   key: fs.readFileSync("./src/utils/sslcert/cert.key"),
   cert: fs.readFileSync("./src/utils/sslcert/cert.pem"),
 };
-const PORT: number = Number(process.env.PORT) || 8443;
+const PORT: number = Number(process.env.PORT) || 8444; // 8443
 
 const app = express();
 
@@ -124,11 +124,18 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+process.on("exit", (code) => {
+  console.log("Saliendo del proceso con código:", code);
+});
+
+const clientID = process.argv[2] ?? "583873459587516";
+const clientSecret = process.argv[3] ?? "ff9792055e390e55b6097a2e0d35dcfe";
+
 passport.use(
   new FacebookStrategy(
     {
-      clientID: "583873459587516",
-      clientSecret: "ff9792055e390e55b6097a2e0d35dcfe",
+      clientID,
+      clientSecret,
       callbackURL: `https://localhost:${PORT}/auth/facebook/callback`,
     },
     async function (accessToken, refreshToken, profile, cb) {
@@ -176,25 +183,31 @@ app.get("/info", async (req: Request, res: Response) => {
     entryArgs: process.argv,
     platformName: process.platform,
     nodeVersion: process.version,
-    memoryUse: process.memoryUsage(),
+    memoryUse: JSON.stringify(process.memoryUsage()),
     execPath: process.execPath,
     processId: process.pid,
     currentFolder: process.cwd(),
   };
-  res.send(data);
+  res.render("./layouts/info", { layout: "info", data });
 });
 
-app.get("/randoms", async (req: Request, res: Response) => {
-  console.log("entre a randoms");
-  
-  // const DEFAULT_QTY = 10;
-  // const { qty } = req.query;
-  // const top = DEFAULT_QTY;
-  const numbers: number[] = [123, 123];
-  // for (let i = 0; i < top; i++) {
-  //   numbers.push(Math.floor(Math.random() * 1000));
-  // };
-  res.send(numbers.join(", "));
+server.on("request", (req: Request, res: Response) => {
+  const { url, query } = req;
+  if (url === "/randoms") {
+    console.log("entre a randoms");
+
+    const DEFAULT_QTY = 10000000;
+    const { qty } = query;
+    const top = parseInt(qty?.toString() || "") || DEFAULT_QTY;
+
+    const computo = fork("./src/utils/randoms.ts");
+    computo.send(top);
+    computo.on("message", (result) => {
+      console.log(result);
+      
+      res.end(result);
+    });
+  }
 });
 
 app.get("/error-login", async (req: Request, res: Response) => {
