@@ -171,6 +171,32 @@ app.get(
   }
 );
 
+app.get("/info", async (req: Request, res: Response) => {
+  const data = {
+    entryArgs: process.argv,
+    platformName: process.platform,
+    nodeVersion: process.version,
+    memoryUse: process.memoryUsage(),
+    execPath: process.execPath,
+    processId: process.pid,
+    currentFolder: process.cwd(),
+  };
+  res.send(data);
+});
+
+app.get("/randoms", async (req: Request, res: Response) => {
+  console.log("entre a randoms");
+  
+  // const DEFAULT_QTY = 10;
+  // const { qty } = req.query;
+  // const top = DEFAULT_QTY;
+  const numbers: number[] = [123, 123];
+  // for (let i = 0; i < top; i++) {
+  //   numbers.push(Math.floor(Math.random() * 1000));
+  // };
+  res.send(numbers.join(", "));
+});
+
 app.get("/error-login", async (req: Request, res: Response) => {
   console.log("estoy en la ruta de errores");
   res.render("./layouts/error", { layout: "error", errorType: "Login" });
@@ -218,7 +244,7 @@ app.get("/", async (req: any, res: Response) => {
   else {
     // if (!req.session?.username) req.session.username = req.query.username;
     console.log("req.query", req.query);
-    
+
     const productsData: any[] = [];
     if (Object.keys(req.query).length) {
       const response = await Product.getProductsIf(req.query);
