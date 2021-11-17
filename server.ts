@@ -14,7 +14,6 @@ import moment from "moment";
 import session, { MongoClientOptions } from "express-session";
 import MongoStore from "connect-mongo";
 import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import fs from "fs";
 
@@ -146,6 +145,16 @@ passport.use(
   )
 );
 
+passport.use(new FacebookStrategy({
+  callbackURL: `http://localhost:${PORT}/auth/facebook/redirect`,
+  clientID: "583873459587516",
+  clientSecret: "ff9792055e390e55b6097a2e0d35dcfe",
+  profileFields: ['id', 'displayName', 'photos', 'email', 'gender', 'name']
+}, (accessToken, refreshToken, profile, done) => {
+   console.log(profile);
+   
+}))
+
 passport.serializeUser((user, done) => {
   console.log("hago serialize");
   done(null, user);
@@ -156,7 +165,9 @@ passport.deserializeUser(async (user, done) => {
   done(null, user);
 });
 
-app.get("/auth/facebook", passport.authenticate("facebook"));
+app.get("/auth/facebook", passport.authenticate("facebook", {
+  scope: "email"
+}));
 
 app.get(
   "/auth/facebook/callback",
