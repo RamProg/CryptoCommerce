@@ -191,6 +191,8 @@ app.get("/info", async (req: Request, res: Response) => {
   res.render("./layouts/info", { layout: "info", data });
 });
 
+let randomsData = {};
+
 server.on("request", (req: Request, res: Response) => {
   const { url, query } = req;
   if (url === "/randoms") {
@@ -204,10 +206,14 @@ server.on("request", (req: Request, res: Response) => {
     computo.send(top);
     computo.on("message", (result) => {
       console.log(result);
-      
+      randomsData = result;
       res.end(result);
     });
   }
+});
+
+app.get("/randoms", async (req: any, res: Response) => {
+  res.render("./layouts/randoms", { layout: "randoms", data: randomsData });
 });
 
 app.get("/error-login", async (req: Request, res: Response) => {
