@@ -2,6 +2,8 @@
 import express, { Router, Request, Response } from "express";
 import https from "https";
 import { Server as IOServer } from "socket.io";
+import cluster from "cluster";
+import { cpus } from "os";
 
 // Model
 import Product from "./src/model/Product";
@@ -27,6 +29,8 @@ import persistanceType from "./src/DAO/config";
 import getFakeData from "./src/utils/Faker";
 import User from "./src/model/User";
 
+const numCPUs = cpus().length;
+
 const advancedOptions: MongoClientOptions = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -47,6 +51,38 @@ const server: https.Server = https
   });
 
 const io: IOServer = new IOServer(server);
+
+if (process.argv[2].toLocaleLowerCase() === "cluster") {
+  if (cluster.isPrimary) {
+    console.log(`Cantidad de CPUs: ${numCPUs}`);
+    console.log(`Master PID ${process.pid} is running`);
+    for (let i = 0; i < numCPUs; i++) {
+      cluster.fork();
+    }
+    cluster.on("exit", (worker, code, signal) => {
+      console.log(`Worker ${worker.process.pid} died`);
+      cluster.fork();
+    });
+  } else {
+    const PORT = process.argv[2] || 8445;
+    const server = app.listen(PORT, () => {
+      console.log(
+        "Servidor worker HTTP escuchando en el puerto",
+        PORT,
+        ". Process ID: ",
+        process.pid
+      );
+    });
+    server.on("error", (error) => console.log("Error en servidor", error));
+    app.get("/", (req, res) => {
+      res.send(
+        `Servidor express en ${PORT} - PID ${process.pid} - ${moment().format(
+          "DD/MM/YYYY HH:mm"
+        )}`
+      );
+    });
+  }
+}
 
 if (persistanceType + 1 === 3) initializeMariaDB(); // the add is to prevent a ts error
 if (persistanceType + 1 === 5) initializeSQLite(); // the add is to prevent a ts error
@@ -187,6 +223,7 @@ app.get("/info", async (req: Request, res: Response) => {
     execPath: process.execPath,
     processId: process.pid,
     currentFolder: process.cwd(),
+    numCPUs,
   };
   res.render("./layouts/info", { layout: "info", data });
 });

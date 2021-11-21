@@ -9,7 +9,8 @@
         "dev": "nodemon server.ts",
         "test": "echo \"Error: no test specified\" && exit 1",
         "ServerES6toJS5": "npm i && babel server.es6.js --out-file server.js",
-        "ServerTStoJS5": "npm i && tsc --target es5"
+        "ServerTStoJS5": "npm i && tsc --target es5",
+        "prod": "forever start server.js"
     },
     "author": "",
     "license": "ISC",
