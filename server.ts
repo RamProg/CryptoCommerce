@@ -40,7 +40,7 @@ const httpsOptions = {
   key: fs.readFileSync("./src/utils/sslcert/cert.key"),
   cert: fs.readFileSync("./src/utils/sslcert/cert.pem"),
 };
-const PORT: number = Number(process.env.PORT) || 8444; // 8443
+const PORT: number = Number(process.env.PORT) || 8081; // 8443
 
 const app = express();
 
@@ -52,7 +52,9 @@ const server: https.Server = https
 
 const io: IOServer = new IOServer(server);
 
-if (process.argv[2].toLocaleLowerCase() === "cluster") {
+const modo = process.argv[2].toLocaleLowerCase();
+
+if (modo === "cluster") {
   if (cluster.isPrimary) {
     console.log(`Cantidad de CPUs: ${numCPUs}`);
     console.log(`Master PID ${process.pid} is running`);
@@ -64,7 +66,7 @@ if (process.argv[2].toLocaleLowerCase() === "cluster") {
       cluster.fork();
     });
   } else {
-    const PORT = process.argv[2] || 8445;
+    const PORT = process.argv[3] || 8082;
     const server = app.listen(PORT, () => {
       console.log(
         "Servidor worker HTTP escuchando en el puerto",

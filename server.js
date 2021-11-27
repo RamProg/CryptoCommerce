@@ -67,7 +67,7 @@ const httpsOptions = {
     key: fs_1.default.readFileSync("./src/utils/sslcert/cert.key"),
     cert: fs_1.default.readFileSync("./src/utils/sslcert/cert.pem"),
 };
-const PORT = Number(process.env.PORT) || 8444; // 8443
+const PORT = Number(process.env.PORT) || 8081; // 8443
 const app = express_1.default();
 const server = https_1.default
     .createServer(httpsOptions, app)
@@ -75,7 +75,8 @@ const server = https_1.default
     console.log("Server corriendo en " + PORT);
 });
 const io = new socket_io_1.Server(server);
-if (process.argv[2].toLocaleLowerCase() === "cluster") {
+const modo = process.argv[2].toLocaleLowerCase();
+if (modo === "cluster") {
     if (cluster_1.default.isPrimary) {
         console.log(`Cantidad de CPUs: ${numCPUs}`);
         console.log(`Master PID ${process.pid} is running`);
@@ -88,7 +89,7 @@ if (process.argv[2].toLocaleLowerCase() === "cluster") {
         });
     }
     else {
-        const PORT = process.argv[2] || 8445;
+        const PORT = process.argv[3] || 8082;
         const server = app.listen(PORT, () => {
             console.log("Servidor worker HTTP escuchando en el puerto", PORT, ". Process ID: ", process.pid);
         });
