@@ -52,7 +52,17 @@ const server: https.Server = https
 
 const io: IOServer = new IOServer(server);
 
-const modo = process.argv[2].toLocaleLowerCase();
+if (!process.argv[2]) {
+  process.exit(-5);
+}
+if (
+  process.argv[3]?.toLowerCase() !== "fork" &&
+  process.argv[3]?.toLowerCase() !== "cluster"
+) {
+  process.exit(-5);
+}
+
+const modo = process.argv[3].toLocaleLowerCase();
 
 if (modo === "cluster") {
   if (cluster.isPrimary) {
@@ -66,7 +76,7 @@ if (modo === "cluster") {
       cluster.fork();
     });
   } else {
-    const PORT = process.argv[3] || 8082;
+    const PORT = process.argv[2] || 8082;
     const server = app.listen(PORT, () => {
       console.log(
         "Servidor worker HTTP escuchando en el puerto",
