@@ -1,6 +1,11 @@
 import DAOFactory from "../DAO/DAOFactory";
 import DAOInterface from "../DAO/DAOInterface";
 import persistanceType from "../DAO/config";
+import log4js from "log4js";
+
+const logger = log4js.getLogger();
+
+logger.level = "debug";
 
 const table = "products";
 
@@ -48,11 +53,12 @@ export default class Product {
   }
 
   static getProducts = async function (): Promise<any[]> {
+    logger.info("all products are being getted");
     try {
       const response = await DAO.getAll(table);
       return response;
     } catch (error: Error | unknown) {
-      console.log(error);
+      logger.error(error);
     }
     return [];
   };
@@ -69,7 +75,7 @@ export default class Product {
       const response = await DAO.getAllWithConditions(table, conditions);
       return response;
     } catch (error: Error | unknown) {
-      console.log(error);
+      logger.error(error);
     }
     return [];
   };
@@ -79,7 +85,7 @@ export default class Product {
       const response = await DAO.getOne(table, id);
       return response;
     } catch (error) {
-      console.log(error);
+      logger.error(error);
     }
     return;
   }
@@ -103,7 +109,7 @@ export default class Product {
     try {
       await DAO.addElement(table, newProduct);
     } catch (error: Error | unknown) {
-      console.log(error);
+      logger.error(error);
     }
     return newProduct;
   }
@@ -119,7 +125,7 @@ export default class Product {
   ) {
     const foundProducts = await this.getProduct(id);
     const productToUpdate = foundProducts ? foundProducts[0] : undefined;
-    console.log("busque un producto");
+    logger.info("busque un producto");
 
     if (!productToUpdate) return;
     if (name) productToUpdate.name = name;
@@ -129,22 +135,23 @@ export default class Product {
     if (price) productToUpdate.price = price;
     if (stock) productToUpdate.stock = stock;
     try {
-      console.log("me tengoq ue meter a actualizar");
+      logger.info("me tengo que meter a actualizar");
 
       await DAO.updateElement(table, id, productToUpdate);
     } catch (error: Error | unknown) {
-      console.log(error);
+      logger.error(error);
     }
     return productToUpdate;
   }
 
   static async delete(id: string): Promise<object | undefined> {
+    logger.warn("a product is going to be deleted");
     const product = await this.getProduct(id);
     try {
       await DAO.deleteElement(table, id);
       return product;
     } catch (error: Error | unknown) {
-      console.log(error);
+      logger.error(error);
     }
     return;
   }

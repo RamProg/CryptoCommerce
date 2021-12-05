@@ -2,7 +2,7 @@
 import express, { Router, Request, Response } from "express";
 import https from "https";
 import { Server as IOServer } from "socket.io";
-import cluster from "cluster";
+// import cluster from "cluster";
 import { cpus } from "os";
 
 // Model
@@ -19,7 +19,8 @@ import passport from "passport";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import fs from "fs";
 import { fork } from "child_process";
-
+import compression from "compression";
+  
 // Database
 import { initializeMariaDB } from "./src/DAO/MySQL";
 import { initializeSQLite } from "./src/DAO/SQLite";
@@ -40,7 +41,7 @@ const httpsOptions = {
   key: fs.readFileSync("./src/utils/sslcert/cert.key"),
   cert: fs.readFileSync("./src/utils/sslcert/cert.pem"),
 };
-const PORT: number = Number(process.env.PORT) || 8081; // 8443
+const PORT: number = Number(process.env.PORT) || 8080; // 8443
 
 const app = express();
 
@@ -52,49 +53,49 @@ const server: https.Server = https
 
 const io: IOServer = new IOServer(server);
 
-if (!process.argv[2]) {
-  process.exit(-5);
-}
-if (
-  process.argv[3]?.toLowerCase() !== "fork" &&
-  process.argv[3]?.toLowerCase() !== "cluster"
-) {
-  process.exit(-5);
-}
+// if (!process.argv[2]) {
+//   process.exit(-5);
+// }
+// if (
+//   process.argv[3]?.toLowerCase() !== "fork" &&
+//   process.argv[3]?.toLowerCase() !== "cluster"
+// ) {
+//   process.exit(-5);
+// }
 
-const modo = process.argv[3].toLocaleLowerCase();
+// const modo = process.argv[3].toLocaleLowerCase();
 
-if (modo === "cluster") {
-  if (cluster.isPrimary) {
-    console.log(`Cantidad de CPUs: ${numCPUs}`);
-    console.log(`Master PID ${process.pid} is running`);
-    for (let i = 0; i < numCPUs; i++) {
-      cluster.fork();
-    }
-    cluster.on("exit", (worker, code, signal) => {
-      console.log(`Worker ${worker.process.pid} died`);
-      cluster.fork();
-    });
-  } else {
-    const PORT = process.argv[2] || 8082;
-    const server = app.listen(PORT, () => {
-      console.log(
-        "Servidor worker HTTP escuchando en el puerto",
-        PORT,
-        ". Process ID: ",
-        process.pid
-      );
-    });
-    server.on("error", (error) => console.log("Error en servidor", error));
-    app.get("/", (req, res) => {
-      res.send(
-        `Servidor express en ${PORT} - PID ${process.pid} - ${moment().format(
-          "DD/MM/YYYY HH:mm"
-        )}`
-      );
-    });
-  }
-}
+// if (modo === "cluster") {
+//   if (cluster.isPrimary) {
+//     console.log(`Cantidad de CPUs: ${numCPUs}`);
+//     console.log(`Master PID ${process.pid} is running`);
+//     for (let i = 0; i < numCPUs; i++) {
+//       cluster.fork();
+//     }
+//     cluster.on("exit", (worker, code, signal) => {
+//       console.log(`Worker ${worker.process.pid} died`);
+//       cluster.fork();
+//     });
+//   } else {
+//     const PORT = process.argv[2] || 8082;
+//     const server = app.listen(PORT, () => {
+//       console.log(
+//         "Servidor worker HTTP escuchando en el puerto",
+//         PORT,
+//         ". Process ID: ",
+//         process.pid
+//       );
+//     });
+//     server.on("error", (error) => console.log("Error en servidor", error));
+//     app.get("/", (req, res) => {
+//       res.send(
+//         `Servidor express en ${PORT} - PID ${process.pid} - ${moment().format(
+//           "DD/MM/YYYY HH:mm"
+//         )}`
+//       );
+//     });
+//   }
+// }
 
 if (persistanceType + 1 === 3) initializeMariaDB(); // the add is to prevent a ts error
 if (persistanceType + 1 === 5) initializeSQLite(); // the add is to prevent a ts error
@@ -152,6 +153,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use("/products", productsRouter);
 app.use("/cart", cartRouter);
+app.use(compression());
 
 app.use(
   session({
